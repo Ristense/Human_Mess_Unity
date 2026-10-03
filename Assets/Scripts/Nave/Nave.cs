@@ -78,7 +78,7 @@ public class Nave : MonoBehaviour
         }
         // Si el giro te sale al revés de lo que esperás, dale vuelta
         // el signo acá nomás — depende de cómo mira tu sprite.
-        _rb.AddTorque(turn * turnTorque);
+        _rb.AddTorque(-turn * turnTorque);
 
         float thrust = 0f;
         if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed)

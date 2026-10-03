@@ -1,0 +1,52 @@
+# Carpetas que Unity regenera solas — nunca van a git, son gigas de
+# cache/compilado. Si las subís, cada compañero las vuelve a generar
+# distinto y el repo se llena de basura binaria.
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+[Uu]serSettings/
+
+# Archivos de proyecto de editores (VS/Rider) — se regeneran solos al
+# abrir el proyecto.
+.vs/
+.vscode/
+*.csproj
+*.sln
+*.slnx
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+.vsconfig
+
+# Crashlogs, archivos de sistema
+sysinfo.txt
+crashlytics-build.properties
+*.apk
+*.aab
+*.unitypackage
+*.app
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Asset Store tools suelen tirar esto
+/[Aa]ssets/AssetStoreTools*
+
+# Addressables (si lo usan después)
+/[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
+/[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/AddressableAssetsSettings.asset
+
+# Auto-generado por 2D/3D project settings packages
+/[Aa]ssets/[Pp]lugins/[Ee]ditor/JetBrains*

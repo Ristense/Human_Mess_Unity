@@ -1,0 +1,31 @@
+# Fuerza LF en los archivos de texto de Unity (yaml, meta, código) sin
+# importar que estés en Windows — así los diffs no se llenan de ruido
+# por saltos de línea CRLF vs LF entre máquinas.
+* text=auto eol=lf
+
+*.cs diff=csharp text
+*.cginc text
+*.shader text
+
+*.mat merge=unityyamlmerge eol=lf
+*.anim merge=unityyamlmerge eol=lf
+*.unity merge=unityyamlmerge eol=lf
+*.prefab merge=unityyamlmerge eol=lf
+*.physicMaterial merge=unityyamlmerge eol=lf
+*.physicsMaterial2D merge=unityyamlmerge eol=lf
+*.asset merge=unityyamlmerge eol=lf
+*.meta merge=unityyamlmerge eol=lf
+*.controller merge=unityyamlmerge eol=lf
+
+# Binarios: ni diff ni merge de texto, tal cual
+*.cubemap binary
+*.unitypackage binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.psd binary
+*.ttf binary
+*.ogg binary
+*.wav binary
+*.mp3 binary

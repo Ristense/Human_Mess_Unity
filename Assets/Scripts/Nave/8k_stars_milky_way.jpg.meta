@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 1c3a15df9150f0742b79ab6cd2543bd2
+guid: 40b5b59723b05f2449bda98f15ab99d1
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4411912284977329265
-    second: Planeta_Textura_0
+      213: -7726587210305914970
+    second: 8k_stars_milky_way_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -48,7 +48,7 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 0
+  spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
@@ -102,13 +102,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Planeta_Textura_0
+      name: 8k_stars_milky_way_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 2048
-        height: 2048
+        width: 8192
+        height: 4096
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -117,8 +117,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 174714e09d24a3d30800000000000000
-      internalID: 4411912284977329265
+      spriteID: 6a7b3a39ed5a5c490800000000000000
+      internalID: -7726587210305914970
       vertices: []
       indices: 
       edges: []
@@ -127,7 +127,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -137,7 +137,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Planeta_Textura_0: 4411912284977329265
+      8k_stars_milky_way_0: -7726587210305914970
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

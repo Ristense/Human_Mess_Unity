@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 1c3a15df9150f0742b79ab6cd2543bd2
+guid: 8aeacc57c3e3dc441b12308adf7ee081
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4411912284977329265
-    second: Planeta_Textura_0
+      213: -6253194844329213296
+    second: 2k_makemake_fictional_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -48,7 +48,7 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 0
+  spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
@@ -102,13 +102,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Planeta_Textura_0
+      name: 2k_makemake_fictional_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
         width: 2048
-        height: 2048
+        height: 1024
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -117,8 +117,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 174714e09d24a3d30800000000000000
-      internalID: 4411912284977329265
+      spriteID: 09204708b603839a0800000000000000
+      internalID: -6253194844329213296
       vertices: []
       indices: 
       edges: []
@@ -127,7 +127,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -137,7 +137,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Planeta_Textura_0: 4411912284977329265
+      2k_makemake_fictional_0: -6253194844329213296
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

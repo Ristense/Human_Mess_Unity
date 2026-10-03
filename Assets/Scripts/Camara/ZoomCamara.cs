@@ -2,29 +2,40 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// Zoom con la rueda del mouse. Cambia el Orthographic Size de la
-/// cámara — en una cámara ortográfica (la normal para 2D) ESO es el
-/// zoom: más chico ves menos mundo pero más de cerca, más grande ves
-/// más mundo pero más lejos. Al revés de como funcionaba el "zoom" en
-/// Godot, que ahí multiplicaba.
+/// Zoom con la rueda del mouse. Detecta sola si la cámara es
+/// Orthographic o Perspective y usa el control que corresponda a
+/// cada una — así no se rompe si después le cambiás el modo de
+/// proyección (como pasó: esto estaba hecho solo para Ortográfica y
+/// dejó de reaccionar al pasar a Perspective).
+///
+///   Orthographic: cambia Orthographic Size (cuánto mundo entra en
+///                 pantalla — esto no tiene "distancia" real).
+///   Perspective:  cambia Field of View (el "lente" de la cámara —
+///                 más angosto se siente más cerca, sin mover la
+///                 cámara de lugar y sin pelearse con SeguirJugador,
+///                 que es quien controla la posición).
 ///
 /// Mismo patrón de suavizado que usamos en otros lados: no saltás al
-/// valor pedido, lo perseguís de a poco cada frame — se siente menos
-/// seco que si el zoom cambiara de un tirón por cada click de rueda.
+/// valor pedido, lo perseguís de a poco cada frame.
 /// </summary>
 [RequireComponent(typeof(Camera))]
 public class ZoomCamara : MonoBehaviour
 {
     [Tooltip("Cuánto cambia el zoom por cada tick de rueda. Es " +
         "multiplicativo: un paso se siente igual de grande estando " +
-        "cerca que estando lejos.")]
+        "cerca que estando lejos. Aplica en modo Orthographic.")]
     [SerializeField] private float zoomStep = 1.1f;
 
-    [Tooltip("Qué tan cerca te podés acercar (Orthographic Size más chico).")]
-    [SerializeField] private float zoomMin = 2f;
+    [Header("Orthographic")]
+    [SerializeField] private float orthoMin = 2f;
+    [SerializeField] private float orthoMax = 15f;
 
-    [Tooltip("Qué tan lejos te podés alejar (Orthographic Size más grande).")]
-    [SerializeField] private float zoomMax = 15f;
+    [Header("Perspective (Field of View, en grados)")]
+    [Tooltip("FOV más chico = más acercado (como un zoom de lente).")]
+    [SerializeField] private float fovMin = 15f;
+    [SerializeField] private float fovMax = 70f;
+    [Tooltip("Cuántos grados de FOV cambia por tick de rueda.")]
+    [SerializeField] private float fovStep = 3f;
 
     [Tooltip("Qué tan rápido el zoom real persigue al zoom pedido. " +
         "Más alto = más seco; más bajo = más suave.")]
@@ -36,7 +47,7 @@ public class ZoomCamara : MonoBehaviour
     private void Awake()
     {
         _cam = GetComponent<Camera>();
-        _target = _cam.orthographicSize;
+        _target = _cam.orthographic ? _cam.orthographicSize : _cam.fieldOfView;
     }
 
     private void Update()
@@ -47,19 +58,42 @@ public class ZoomCamara : MonoBehaviour
         }
 
         float scroll = Mouse.current.scroll.ReadValue().y;
-        if (scroll > 0f)
+
+        if (_cam.orthographic)
         {
-            // rueda hacia arriba = acercarse = ver MENOS mundo = size más chico
-            _target = Mathf.Max(_target / zoomStep, zoomMin);
+            if (scroll > 0f)
+            {
+                // rueda arriba = acercarse = ver MENOS mundo = size más chico
+                _target = Mathf.Max(_target / zoomStep, orthoMin);
+            }
+            else if (scroll < 0f)
+            {
+                _target = Mathf.Min(_target * zoomStep, orthoMax);
+            }
         }
-        else if (scroll < 0f)
+        else
         {
-            _target = Mathf.Min(_target * zoomStep, zoomMax);
+            if (scroll > 0f)
+            {
+                // rueda arriba = acercarse = FOV más angosto
+                _target = Mathf.Max(_target - fovStep, fovMin);
+            }
+            else if (scroll < 0f)
+            {
+                _target = Mathf.Min(_target + fovStep, fovMax);
+            }
         }
 
         // suavizado exponencial: se acerca un porcentaje de lo que
         // falta cada frame, así que no depende de los FPS
         float t = 1f - Mathf.Exp(-zoomSpeed * Time.deltaTime);
-        _cam.orthographicSize = Mathf.Lerp(_cam.orthographicSize, _target, t);
+        if (_cam.orthographic)
+        {
+            _cam.orthographicSize = Mathf.Lerp(_cam.orthographicSize, _target, t);
+        }
+        else
+        {
+            _cam.fieldOfView = Mathf.Lerp(_cam.fieldOfView, _target, t);
+        }
     }
 }

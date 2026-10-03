@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Planeta_Textura
-  m_Shader: {fileID: 4800000, guid: e260cfa7296ee7642b167f1eb5be5023, type: 3}
+  m_Name: BackGround
+  m_Shader: {fileID: 4800000, guid: 540064fb755318541a55ec9976958230, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -28,7 +28,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 1c3a15df9150f0742b79ab6cd2543bd2, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MaskTex:
@@ -36,16 +36,30 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
-        m_Texture: {fileID: 2800000, guid: 2f43ec8e5ea631a45a09a48eac80a30f, type: 3}
-        m_Scale: {x: 22.2, y: 1}
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _Densidad: 0.298
     - _EnableExternalAlpha: 0
+    - _ManchaEscala: 2
+    - _ManchaOpacidad: 0.038
+    - _ManchaSuavidad: 0.288
+    - _ManchaUmbral: 0.471
+    - _Seed: 8.08
+    - _TamanoEstrella: 0.016
+    - _Tiling: 65.5
+    - _TwinkleFuerza: 0.489
+    - _TwinkleVelocidad: 4
     - _ZWrite: 0
     m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 0.9528302, g: 0.81350124, b: 0.81350124, a: 1}
+    - _ColorA: {r: 1, g: 1, b: 1, a: 1}
+    - _ColorB: {r: 0.7, g: 0.8, b: 1, a: 1}
+    - _ColorC: {r: 1, g: 0.85, b: 0.6, a: 1}
+    - _ColorD: {r: 1, g: 0.6, b: 0.54999995, a: 1}
+    - _ColorE: {r: 0.75, g: 0.6, b: 1, a: 1}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
-    - _White: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

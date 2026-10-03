@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// La nave, como cuerpo físico real (Rigidbody2D). El movimiento de
@@ -51,12 +52,27 @@ public class Nave : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // Keyboard.current (del paquete Input System), NO la clase
+        // UnityEngine.Input vieja. Este proyecto viene configurado en
+        // Project Settings > Player > Active Input Handling con el
+        // Input System nuevo, y ahí la clase vieja tira excepción en
+        // vez de simplemente no andar — avisa fuerte para que no te
+        // quede un bug silencioso.
+        //
+        // Si no hay teclado conectado (poco probable, pero pasa en
+        // testeo automatizado) Keyboard.current es null — por eso el
+        // chequeo antes de leerlo.
+        if (Keyboard.current == null)
+        {
+            return;
+        }
+
         float turn = 0f;
-        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+        if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed)
         {
             turn -= 1f;
         }
-        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+        if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed)
         {
             turn += 1f;
         }
@@ -65,11 +81,11 @@ public class Nave : MonoBehaviour
         _rb.AddTorque(turn * turnTorque);
 
         float thrust = 0f;
-        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
+        if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed)
         {
             thrust += 1f;
         }
-        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
+        if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed)
         {
             thrust -= 1f;
         }
@@ -86,7 +102,7 @@ public class Nave : MonoBehaviour
             _rb.AddForce(-facing * reverseForce);
         }
 
-        if (Input.GetKey(KeyCode.Space))
+        if (Keyboard.current.spaceKey.isPressed)
         {
             Estabilizar(Time.fixedDeltaTime);
         }

@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: New Material
+  m_Name: BackGround_Fondo
   m_Shader: {fileID: 4800000, guid: 8c3bb6de0c0e7c047b65c077249507e5, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0

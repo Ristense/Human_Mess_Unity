@@ -50,3 +50,7 @@ Thumbs.db
 
 # Auto-generado por 2D/3D project settings packages
 /[Aa]ssets/[Pp]lugins/[Ee]ditor/JetBrains*
+
+# Textura 8K de 90MB - demasiado pesada para git (ver nota)
+Assets/Planeta_Difusse8k.png
+Assets/Planeta_Difusse8k.png.meta

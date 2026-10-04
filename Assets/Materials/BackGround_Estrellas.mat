@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: BackGround
+  m_Name: BackGround_Estrellas
   m_Shader: {fileID: 4800000, guid: 540064fb755318541a55ec9976958230, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0

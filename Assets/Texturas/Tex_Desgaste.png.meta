@@ -1,0 +1,561 @@
+fileFormatVersion: 2
+guid: bd2b5bbc4c3800747a5079125ddcaf25
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 853808452280517746
+    second: Tex_Desgaste_0
+  - first:
+      213: 5633300998284024511
+    second: Tex_Desgaste_1
+  - first:
+      213: -4068557074486006057
+    second: Tex_Desgaste_2
+  - first:
+      213: 4429420335714248057
+    second: Tex_Desgaste_3
+  - first:
+      213: -2060146965076088614
+    second: Tex_Desgaste_4
+  - first:
+      213: 7834053355014631604
+    second: Tex_Desgaste_5
+  - first:
+      213: -7754768171466770316
+    second: Tex_Desgaste_6
+  - first:
+      213: -1354390263067239082
+    second: Tex_Desgaste_7
+  - first:
+      213: 8708217728957665868
+    second: Tex_Desgaste_8
+  - first:
+      213: -9124260296620112671
+    second: Tex_Desgaste_9
+  - first:
+      213: 6748068306941205765
+    second: Tex_Desgaste_10
+  - first:
+      213: -1829241320185134108
+    second: Tex_Desgaste_11
+  - first:
+      213: 3022947447932019710
+    second: Tex_Desgaste_12
+  - first:
+      213: 7712420013337723096
+    second: Tex_Desgaste_13
+  - first:
+      213: -1640755287638172142
+    second: Tex_Desgaste_14
+  - first:
+      213: -7891760273115604435
+    second: Tex_Desgaste_15
+  - first:
+      213: 7745716867677774201
+    second: Tex_Desgaste_16
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationMethod: 0
+  spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Tex_Desgaste_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 739
+        width: 1007
+        height: 285
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2740860834659db00800000000000000
+      internalID: 853808452280517746
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tex_Desgaste_1
+      rect:
+        serializedVersion: 2
+        x: 1003
+        y: 869
+        width: 21
+        height: 101
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fba929359618d2e40800000000000000
+      internalID: 5633300998284024511
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tex_Desgaste_2
+      rect:
+        serializedVersion: 2
+        x: 994
+        y: 756
+        width: 30
+        height: 81
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7deebda95e49987c0800000000000000
+      internalID: -4068557074486006057
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tex_Desgaste_3
+      rect:
+        serializedVersion: 2
+        x: 142
+        y: 730
+        width: 102
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 975a327c356787d30800000000000000
+      internalID: 4429420335714248057
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tex_Desgaste_4
+      rect:
+        serializedVersion: 2
+        x: 535
+        y: 736
+        width: 471
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ad86a891043e863e0800000000000000
+      internalID: -2060146965076088614
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tex_Desgaste_5
+      rect:
+        serializedVersion: 2
+        x: 986
+        y: 717
+        width: 38
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b0ba11150628bc60800000000000000
+      internalID: 7834053355014631604
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tex_Desgaste_6
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 686
+        width: 183
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 478b7304f67816490800000000000000
+      internalID: -7754768171466770316
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tex_Desgaste_7
+      rect:
+        serializedVersion: 2
+        x: 751
+        y: 696
+        width: 234
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 65d11aa4b3d343de0800000000000000
+      internalID: -1354390263067239082
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tex_Desgaste_8
+      rect:
+        serializedVersion: 2
+        x: 314
+        y: 689
+        width: 57
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c42d749e2edc9d870800000000000000
+      internalID: 8708217728957665868
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tex_Desgaste_9
+      rect:
+        serializedVersion: 2
+        x: 516
+        y: 687
+        width: 141
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e402c54a9d106180800000000000000
+      internalID: -9124260296620112671
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tex_Desgaste_10
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 508
+        width: 1008
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50d5d435f54f5ad50800000000000000
+      internalID: 6748068306941205765
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tex_Desgaste_11
+      rect:
+        serializedVersion: 2
+        x: 982
+        y: 556
+        width: 42
+        height: 63
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4e306e506ba3d96e0800000000000000
+      internalID: -1829241320185134108
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tex_Desgaste_12
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 1008
+        height: 510
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef369a800baa3f920800000000000000
+      internalID: 3022947447932019710
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tex_Desgaste_13
+      rect:
+        serializedVersion: 2
+        x: 982
+        y: 489
+        width: 42
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d0cb95d325080b60800000000000000
+      internalID: 7712420013337723096
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tex_Desgaste_14
+      rect:
+        serializedVersion: 2
+        x: 997
+        y: 375
+        width: 27
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 21e9bfc42cdda39e0800000000000000
+      internalID: -1640755287638172142
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tex_Desgaste_15
+      rect:
+        serializedVersion: 2
+        x: 989
+        y: 262
+        width: 35
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d2a976c08d5da7290800000000000000
+      internalID: -7891760273115604435
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Tex_Desgaste_16
+      rect:
+        serializedVersion: 2
+        x: 986
+        y: 148
+        width: 38
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9716facd3705e7b60800000000000000
+      internalID: 7745716867677774201
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Tex_Desgaste_0: 853808452280517746
+      Tex_Desgaste_1: 5633300998284024511
+      Tex_Desgaste_10: 6748068306941205765
+      Tex_Desgaste_11: -1829241320185134108
+      Tex_Desgaste_12: 3022947447932019710
+      Tex_Desgaste_13: 7712420013337723096
+      Tex_Desgaste_14: -1640755287638172142
+      Tex_Desgaste_15: -7891760273115604435
+      Tex_Desgaste_16: 7745716867677774201
+      Tex_Desgaste_2: -4068557074486006057
+      Tex_Desgaste_3: 4429420335714248057
+      Tex_Desgaste_4: -2060146965076088614
+      Tex_Desgaste_5: 7834053355014631604
+      Tex_Desgaste_6: -7754768171466770316
+      Tex_Desgaste_7: -1354390263067239082
+      Tex_Desgaste_8: 8708217728957665868
+      Tex_Desgaste_9: -9124260296620112671
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

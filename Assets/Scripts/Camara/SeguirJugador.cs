@@ -34,6 +34,25 @@ public class SeguirJugador : MonoBehaviour
     // variable local.
     private Vector3 _velocidad = Vector3.zero;
 
+    /// <summary>
+    /// Se planta encima del objetivo de una, sin suavizado. Para cuando
+    /// el jugador se teletransporta (spawn, respawn): si no, la cámara
+    /// cree que el objetivo "se movió" y te hace todo el viaje a la
+    /// vista.
+    ///
+    /// También limpia la velocidad acumulada — si no, SmoothDamp la
+    /// arrastra y se pasa de largo en el primer frame.
+    /// </summary>
+    public void Centrar()
+    {
+        if (objetivo == null)
+        {
+            return;
+        }
+        transform.position = objetivo.position + offset;
+        _velocidad = Vector3.zero;
+    }
+
     private void LateUpdate()
     {
         // LateUpdate, no Update: tiene que correr DESPUÉS de que el

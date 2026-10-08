@@ -43,6 +43,13 @@ public class BrazoIK : MonoBehaviour
     [SerializeField] private Transform spriteSuperior;
     [SerializeField] private Transform spriteInferior;
 
+    [Tooltip("El objeto de la mano. Lo movemos desde acá y no desde el " +
+        "script Mano porque los dos corren en LateUpdate, y entre dos " +
+        "scripts no hay orden garantizado: la mano podría leer la " +
+        "posición VIEJA del brazo y quedar un frame atrás. Todo lo que " +
+        "cuelgue de ella (el sprite, las partículas) la sigue solo.")]
+    [SerializeField] private Transform mano;
+
     [Tooltip("Grados de corrección si tu sprite NO está dibujado " +
         "mirando hacia la derecha (+X). Si lo dibujaste mirando hacia " +
         "arriba, probá -90. Si quedó al revés de lo que esperabas, " +
@@ -194,6 +201,23 @@ public class BrazoIK : MonoBehaviour
         {
             PosicionarSprite(spriteInferior, CodoGlobal, ManoGlobal);
         }
+
+        if (mano != null)
+        {
+            // La mano va en la punta, mirando como mira el antebrazo.
+            // La Z se respeta: define en qué capa se dibuja y no tiene
+            // nada que ver con la pose del brazo.
+            Vector3 p = ManoGlobal;
+            p.z = mano.position.z;
+            mano.position = p;
+
+            Vector2 dir = ManoGlobal - CodoGlobal;
+            if (dir.sqrMagnitude > 0.000001f)
+            {
+                float angulo = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+                mano.rotation = Quaternion.Euler(0f, 0f, angulo + offsetRotacionSprite);
+            }
+        }
     }
 
     /// <summary>
@@ -204,7 +228,13 @@ public class BrazoIK : MonoBehaviour
     /// </summary>
     private void PosicionarSprite(Transform sprite, Vector2 desde, Vector2 hasta)
     {
-        sprite.position = desde;
+        // Ojo con asignar un Vector2 a .position: C# lo convierte a
+        // Vector3 poniendo Z = 0, así que cada frame le borraría la
+        // profundidad que acomodaste en el editor. La Z no es parte de
+        // la pose del brazo — define qué sprite tapa a cuál — así que
+        // se respeta la que tenga.
+        sprite.position = new Vector3(desde.x, desde.y, sprite.position.z);
+
         Vector2 delta = hasta - desde;
         float angulo = Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg;
         sprite.rotation = Quaternion.Euler(0f, 0f, angulo + offsetRotacionSprite);

@@ -38,6 +38,16 @@ public class Nave : MonoBehaviour
     [SerializeField] private float stabilizeForce = 18f;
     [SerializeField] private float stabilizeTorque = 14f;
 
+    [Tooltip("Por debajo de esta velocidad (unidades/seg) se corta a " +
+        "cero de una. Sin esto la nave queda derivando un resto " +
+        "chiquito eternamente: frenar con fuerza se ACERCA a cero " +
+        "pero no llega nunca. Subilo si te sigue deslizando, bajalo " +
+        "si el final se siente abrupto.")]
+    [SerializeField] private float umbralParada = 0.02f;
+
+    [Tooltip("Lo mismo pero para el giro, en grados/seg.")]
+    [SerializeField] private float umbralGiro = 0.5f;
+
     private Rigidbody2D _rb;
 
     private void Awake()
@@ -128,13 +138,23 @@ public class Nave : MonoBehaviour
             return;
         }
 
-        if (_rb.linearVelocity.magnitude > 0.01f)
+        if (_rb.linearVelocity.magnitude > umbralParada)
         {
             Vector2 f = -_rb.linearVelocity * _rb.mass / dt;
             _rb.AddForce(Vector2.ClampMagnitude(f, stabilizeForce));
         }
+        else
+        {
+            // El último tramo se corta a mano. Frenando con fuerza la
+            // velocidad decae de forma exponencial: cada paso queda
+            // menos, pero nunca llega a cero. Y un resto de 0.01 u/s
+            // parece quieto en un frame y te corrió media nave en un
+            // minuto. Por eso el salto final, que a esta escala no se
+            // ve pero termina el movimiento de verdad.
+            _rb.linearVelocity = Vector2.zero;
+        }
 
-        if (Mathf.Abs(_rb.angularVelocity) > 0.001f)
+        if (Mathf.Abs(_rb.angularVelocity) > umbralGiro)
         {
             // angularVelocity de Unity viene en GRADOS/seg, no
             // radianes — a diferencia de Godot. Para la cuenta de
@@ -144,6 +164,10 @@ public class Nave : MonoBehaviour
             // unidad angular mientras no mezclés.
             float t = -_rb.angularVelocity * _rb.inertia / dt;
             _rb.AddTorque(Mathf.Clamp(t, -stabilizeTorque, stabilizeTorque));
+        }
+        else
+        {
+            _rb.angularVelocity = 0f;
         }
     }
 

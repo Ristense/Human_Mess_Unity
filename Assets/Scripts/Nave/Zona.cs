@@ -18,13 +18,30 @@ public class Zona : MonoBehaviour
     [SerializeField] private int rows = 1;
     [SerializeField] private float cellSize = 0.5f;
 
+    [Tooltip("Hueco entre celda y celda, en las mismas unidades que " +
+        "Cell Size. En 0 quedan pegadas. No cambia el tamaño de la " +
+        "celda: solo las separa, así que lo que montes sigue midiendo " +
+        "lo mismo.")]
+    [Min(0f)]
+    [SerializeField] private float separacion = 0f;
+
     [Tooltip("Qué Modulo.tipo acepta esta zona. Vacío = acepta cualquiera.")]
     [SerializeField] private string acepta = "modulo";
+
+    [Tooltip("Si está, soltar una pieza cerca la enchufa sola. " +
+        "Apagalo en el socket de la mano: ahí querés equipar a " +
+        "propósito con la tecla, no cada vez que soltás algo encima.")]
+    [SerializeField] private bool automatico = true;
 
     [Tooltip("Grados que se le suman a la rotación del módulo al " +
         "montarlo, para que mire \"para afuera\" como corresponda en " +
         "este socket.")]
     [SerializeField] private float salidaGrados = 0f;
+
+    [Tooltip("Z local en la que queda lo que montes. 0 = al ras de la " +
+        "zona. Negativo lo trae hacia la cámara (queda por delante), " +
+        "positivo lo manda atrás.")]
+    [SerializeField] private float zLocal = 0f;
 
     [Header("Luz (opcional)")]
     [Tooltip("El objeto padre de la lucecita de este socket. Se le " +
@@ -132,6 +149,19 @@ public class Zona : MonoBehaviour
         {
             return false;
         }
+        // Nada puede montarse dentro de sí mismo. Si esta zona cuelga
+        // del módulo que estás tratando de enchufar, montarlo lo
+        // volvería hijo de su propio hijo: desaparece de la escena y
+        // no hay forma de volver a agarrarlo.
+        //
+        // Pasa en cuanto un módulo que lleva zonas tiene el mismo
+        // "tipo" que las suyas, que es un error de configuración muy
+        // fácil de cometer y muy difícil de diagnosticar.
+        if (transform.IsChildOf(m.transform))
+        {
+            return false;
+        }
+
         return string.IsNullOrEmpty(acepta) || m.tipo == acepta;
     }
 
@@ -154,11 +184,25 @@ public class Zona : MonoBehaviour
     /// </summary>
     public Vector2 BloqueCentroWorld(int cx, int cy, int w, int h)
     {
-        Vector2 origen = new Vector2(-(cols - 1) * 0.5f, -(rows - 1) * 0.5f) * cellSize;
-        Vector2 local = origen + new Vector2(
-            cx + (w - 1) * 0.5f,
-            cy + (h - 1) * 0.5f) * cellSize;
+        Vector2 local = BloqueCentroLocal(cx, cy, w, h);
         return transform.TransformPoint(local);
+    }
+
+    /// <summary>
+    /// Distancia de centro a centro entre celdas vecinas. Ojo que NO es
+    /// cellSize: con separación, la celda mide una cosa y el paso otra.
+    /// </summary>
+    private float Paso
+    {
+        get { return cellSize + separacion; }
+    }
+
+    private Vector2 BloqueCentroLocal(int cx, int cy, int w, int h)
+    {
+        Vector2 origen = new Vector2(-(cols - 1) * 0.5f, -(rows - 1) * 0.5f) * Paso;
+        return origen + new Vector2(
+            cx + (w - 1) * 0.5f,
+            cy + (h - 1) * 0.5f) * Paso;
     }
 
     /// <summary>
@@ -210,8 +254,13 @@ public class Zona : MonoBehaviour
 
         Transform t = m.transform;
         t.SetParent(transform, worldPositionStays: false);
-        t.localPosition = transform.InverseTransformPoint(
+        // La Z se fuerza en LOCAL y no se arrastra la que traía suelta:
+        // montado, lo que importa es cómo queda respecto a la zona, no
+        // la profundidad que tenía flotando por ahí. Con 0 queda al ras.
+        Vector3 local = transform.InverseTransformPoint(
             BloqueCentroWorld(cx, cy, m.cols, m.rows));
+        local.z = zLocal;
+        t.localPosition = local;
         t.localRotation = Quaternion.Euler(0f, 0f, salidaGrados);
 
         // Montado = deja de ser un cuerpo físico y pasa a ser, lisa y
@@ -329,6 +378,10 @@ public class Zona : MonoBehaviour
 
         foreach (Zona z in _todas)
         {
+            if (!z.automatico)
+            {
+                continue;
+            }
             if (!z.HuecoMasCerca(m, pos, out int x, out int y, out float d))
             {
                 continue;
@@ -466,15 +519,18 @@ public class Zona : MonoBehaviour
         Gizmos.matrix = transform.localToWorldMatrix;
         Gizmos.color = colorGizmo;
 
-        Vector2 origen = new Vector2(-(cols - 1) * 0.5f, -(rows - 1) * 0.5f) * cellSize;
-        Vector3 tamano = new Vector3(cellSize, cellSize, 0f) * 0.95f;
+        // Sin separación le restamos un pelín para que las celdas
+        // vecinas no compartan la misma línea y se vean como una sola.
+        // Con separación ya se distinguen solas, así que las dibujamos
+        // del tamaño real.
+        float lado = separacion > 0f ? cellSize : cellSize * 0.95f;
+        Vector3 tamano = new Vector3(lado, lado, 0f);
 
         for (int cy = 0; cy < rows; cy++)
         {
             for (int cx = 0; cx < cols; cx++)
             {
-                Vector3 centro = origen + new Vector2(cx, cy) * cellSize;
-                Gizmos.DrawWireCube(centro, tamano);
+                Gizmos.DrawWireCube(BloqueCentroLocal(cx, cy, 1, 1), tamano);
             }
         }
 

@@ -22,6 +22,13 @@ public class PantallaFondo : MonoBehaviour
     [Tooltip("Un poquito más grande que lo justo, por si acaso.")]
     [SerializeField] private float margen = 1.02f;
 
+    [Tooltip("La Render Texture que muestra este quad. Si la asignás, " +
+        "el quad respeta SU proporción y se agranda hasta tapar la " +
+        "pantalla, recortando lo que sobre. Vacío = se estira al " +
+        "aspecto de la cámara, que deforma la imagen si la textura no " +
+        "tiene la misma proporción que la ventana.")]
+    [SerializeField] private Texture contenido;
+
     private void LateUpdate()
     {
         if (camara == null)
@@ -50,6 +57,29 @@ public class PantallaFondo : MonoBehaviour
         }
 
         float ancho = alto * camara.aspect;
+
+        // Sin textura asignada: estirar y listo (lo de siempre).
+        // Con textura: "cover", como el background-size de CSS. La
+        // imagen conserva su proporción y crece hasta que no quede
+        // ningún borde a la vista; lo que se pase, se recorta.
+        //
+        // Estirar sería "fill", y es lo que achataba el planeta cuando
+        // la Render Texture era cuadrada y la ventana 16:9.
+        if (contenido != null && contenido.height > 0)
+        {
+            float aspectoTex = (float)contenido.width / contenido.height;
+            if (aspectoTex > camara.aspect)
+            {
+                // la textura es más panorámica: calza en alto y sobra a los lados
+                ancho = alto * aspectoTex;
+            }
+            else
+            {
+                // más alta: calza en ancho y sobra arriba y abajo
+                alto = ancho / aspectoTex;
+            }
+        }
+
         transform.localScale = new Vector3(ancho * margen, alto * margen, 1f);
     }
 }

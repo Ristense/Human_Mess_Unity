@@ -15,6 +15,8 @@ Shader "HumanMess/Estrellas"
 {
     Properties
     {
+        [HideInInspector] _MainTex ("No se usa: existe para que mainTextureOffset mueva el fondo", 2D) = "white" {}
+
         [Header(Paleta de colores)]
         _ColorA ("Color A", Color) = (1, 1, 1, 1)
         _ColorB ("Color B", Color) = (0.7, 0.8, 1, 1)
@@ -86,13 +88,18 @@ Shader "HumanMess/Estrellas"
                 float _ManchaSuavidad;
                 float _ManchaOpacidad;
                 float _Seed;
+                // El .zw de _MainTex_ST es el OFFSET y el .xy el tiling. Lo
+                // declaramos aunque no haya textura: es lo que escribe
+                // Material.mainTextureOffset, y asi un script puede
+                // desplazar un campo de estrellas que es puro calculo.
+                float4 _MainTex_ST;
             CBUFFER_END
 
             Varyings vert(Attributes IN)
             {
                 Varyings OUT;
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
-                OUT.uv = IN.uv;
+                OUT.uv = IN.uv * _MainTex_ST.xy + _MainTex_ST.zw;
                 return OUT;
             }
 

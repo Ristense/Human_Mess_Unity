@@ -405,14 +405,14 @@ public class Zona : MonoBehaviour
     /// Es a propósito — montado no es un cuerpo, es parte de la nave —
     /// pero igual lo tenés que poder volver a agarrar.
     /// </summary>
-    public static Modulo MontadoCerca(Vector2 pos, float radio)
+    public static Modulo MontadoCerca(Vector2 pos, float radio, Zona ignorar = null)
     {
         Modulo mejor = null;
         float dist = radio * radio;
 
         foreach (Zona z in _todas)
         {
-            if (z._celdas == null)
+            if (z._celdas == null || z == ignorar)
             {
                 continue;
             }

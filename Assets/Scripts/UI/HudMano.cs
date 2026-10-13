@@ -19,15 +19,32 @@ public class HudMano : MonoBehaviour
     [Tooltip("De dónde sale el progreso.")]
     [SerializeField] private Mano mano;
 
+    [Tooltip("Que el indicador se plante encima del objetivo. " +
+        "Apagalo y se queda exactamente donde lo dejaste en el " +
+        "editor — útil si lo querés fijo en una esquina.")]
+    [SerializeField] private bool seguirObjetivo = true;
+
     [Tooltip("El objeto a seguir — normalmente la Mano.")]
     [SerializeField] private Transform objetivo;
 
     [Tooltip("La cámara del juego. Vacío = Camera.main.")]
     [SerializeField] private Camera camara;
 
-    [Tooltip("Corrimiento en PÍXELES de pantalla. (0, 60) lo pone " +
-        "arriba de la mano sin taparla.")]
+    [Tooltip("Corrimiento fijo en PÍXELES de pantalla, sin importar " +
+        "hacia dónde mire la mano.")]
     [SerializeField] private Vector2 desplazamiento = new Vector2(0f, 60f);
+
+    [Tooltip("Que el indicador gire junto con la mano.")]
+    [SerializeField] private bool rotarConObjetivo = true;
+
+    [Tooltip("Grados de corrección, para alinear la barra como te " +
+        "guste respecto a la mano. Si queda cruzada, probá 90 o -90.")]
+    [SerializeField] private float offsetRotacion = 0f;
+
+    [Tooltip("Cuántos píxeles se aleja en el sentido CONTRARIO al que " +
+        "apunta la mano. Así la barra queda siempre del lado de " +
+        "atrás y no te tapa aquello a lo que estás apuntando.")]
+    [SerializeField] private float separacionOpuesta = 60f;
 
     [Header("Qué muestra")]
     [Tooltip("Para un aro: Image con Image Type = Filled y Fill " +
@@ -107,13 +124,30 @@ public class HudMano : MonoBehaviour
 
     private void Seguir()
     {
-        if (objetivo == null || _canvas == null)
+        if (!seguirObjetivo || objetivo == null || _canvas == null)
         {
             return;
         }
 
+        // El objeto de la mano ya viene rotado por el BrazoIK hacia
+        // donde apunta el antebrazo, así que su Z nos sirve tal cual.
+        float grados = objetivo.eulerAngles.z + offsetRotacion;
+
+        if (rotarConObjetivo)
+        {
+            _rect.localRotation = Quaternion.Euler(0f, 0f, grados);
+        }
+
         Vector2 pantalla = camara.WorldToScreenPoint(objetivo.position);
         pantalla += desplazamiento;
+
+        if (separacionOpuesta != 0f)
+        {
+            // el MENOS es lo que lo manda para el lado contrario al
+            // que mira la mano
+            float rad = grados * Mathf.Deg2Rad;
+            pantalla -= new Vector2(Mathf.Cos(rad), Mathf.Sin(rad)) * separacionOpuesta;
+        }
 
         if (_canvas.renderMode == RenderMode.ScreenSpaceOverlay)
         {

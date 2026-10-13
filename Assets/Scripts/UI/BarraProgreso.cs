@@ -14,11 +14,33 @@ using UnityEngine;
 /// </summary>
 public class BarraProgreso : MonoBehaviour
 {
-    [Tooltip("De dónde sale el progreso.")]
+    [Tooltip("Si la asignás, la barra muestra la carga de la tecla de " +
+        "la mano. Dejala VACÍA para usarla para otra cosa: ahí el " +
+        "valor se lo pasás vos desde cualquier script con " +
+        "barra.Valor = 0.4f (de 0 a 1).")]
     [SerializeField] private Mano mano;
 
-    [Tooltip("El sprite que se estira. Pivot a la izquierda.")]
+    /// <summary>
+    /// Cuánto se muestra, de 0 a 1. Se puede escribir desde afuera
+    /// cuando no hay una Mano asignada — así la misma barra sirve
+    /// para combustible, carga de la bodega, integridad, lo que sea.
+    /// </summary>
+    public float Valor { get; set; }
+
+    [Tooltip("El sprite que se estira.")]
     [SerializeField] private Transform relleno;
+
+    [Tooltip("En qué eje crece. El PIVOT del sprite tiene que estar " +
+        "del lado por donde arranca: Left para horizontal, Bottom " +
+        "para vertical. Si está al centro crece para los dos lados y " +
+        "queda como una barra de ecualizador.")]
+    [SerializeField] private Eje eje = Eje.Horizontal;
+
+    public enum Eje
+    {
+        Horizontal,
+        Vertical,
+    }
 
     [Tooltip("Esconder la barra cuando no hay nada en curso. " +
         "Apagalo si querés verla siempre para acomodarla.")]
@@ -46,18 +68,28 @@ public class BarraProgreso : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (mano == null || relleno == null)
+        if (relleno == null)
         {
             return;
         }
 
-        float objetivo = mano.Progreso;
+        float objetivo = Mathf.Clamp01(mano != null ? mano.Progreso : Valor);
         _mostrado = suavizado > 0f
             ? Mathf.SmoothDamp(_mostrado, objetivo, ref _velocidad, suavizado)
             : objetivo;
 
+        // Se escala RELATIVO a la escala que le pusiste en el editor,
+        // así el grosor de la barra queda como vos lo dejaste y solo
+        // cambia el largo.
         Vector3 e = _escalaBase;
-        e.x = _escalaBase.x * _mostrado;
+        if (eje == Eje.Vertical)
+        {
+            e.y = _escalaBase.y * _mostrado;
+        }
+        else
+        {
+            e.x = _escalaBase.x * _mostrado;
+        }
         relleno.localScale = e;
 
         if (esconderEnReposo)

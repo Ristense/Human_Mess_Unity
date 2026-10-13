@@ -34,11 +34,13 @@ public class HUD : MonoBehaviour
     {
         if (pesoTexto != null && nave != null)
         {
-            float pesoBase = nave.mass;
-            float pesoCarga = bodega != null ? bodega.MasaCarga() : 0f;
+            // nave.mass ya trae todo sumado si PesoNave lo aplica a la
+            // física, así que acá NO se le vuelve a sumar la carga: se
+            // contaría dos veces
+            float pesoCarga = bodega != null ? bodega.Carga : 0f;
             pesoTexto.text = pesoCarga > 0f
-                ? $"Peso: {pesoBase:0.0} kg  (+{pesoCarga:0.0} kg de carga)"
-                : $"Peso: {pesoBase:0.0} kg";
+                ? $"Peso: {nave.mass:0} kg  ({pesoCarga:0} kg de carga)"
+                : $"Peso: {nave.mass:0} kg";
         }
 
         if (sectorTexto != null && mapa != null && nave != null)
@@ -49,7 +51,7 @@ public class HUD : MonoBehaviour
 
         if (cargaTexto != null && bodega != null)
         {
-            cargaTexto.text = $"Carga: {bodega.Escombros} / {bodega.Capacidad}";
+            cargaTexto.text = $"Carga: {bodega.Carga:0} / {bodega.Capacidad:0} kg";
         }
 
         if (creditosTexto != null && bodega != null)

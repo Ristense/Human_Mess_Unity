@@ -64,7 +64,6 @@ Shader "HumanMess/Neon"
             SAMPLER(sampler_MainTex);
 
             CBUFFER_START(UnityPerMaterial)
-                float4 _MainTex_ST;
                 half4  _Color;
                 half   _Intensidad;
                 half   _SoloClaros;
@@ -74,7 +73,10 @@ Shader "HumanMess/Neon"
             {
                 Varyings OUT;
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
-                OUT.uv = TRANSFORM_TEX(IN.uv, _MainTex);
+                // UV cruda, sin TRANSFORM_TEX: declarar _MainTex_ST en el
+                // CBUFFER rompe el SRP Batcher 2D, y un sprite no usa
+                // tiling ni offset de material — la UV se la da el sprite.
+                OUT.uv = IN.uv;
                 // el color del SpriteRenderer llega por acá
                 OUT.color = IN.color;
                 return OUT;

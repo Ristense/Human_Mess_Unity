@@ -149,7 +149,12 @@ public class CampoObjetos : MonoBehaviour
         {
             foreach (var m in moldes)
             {
-                if (m != null)
+                // Solo se borran los moldes que están EN LA ESCENA. Un
+                // molde puede ser también un prefab del Project, y eso
+                // Unity no te deja destruirlo — sería borrarte el
+                // archivo del disco. scene.IsValid() distingue una
+                // cosa de la otra.
+                if (m != null && m.gameObject.scene.IsValid())
                 {
                     Destroy(m.gameObject);
                 }

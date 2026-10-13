@@ -84,7 +84,7 @@ public class CampoObjetos : MonoBehaviour
             radioPorMolde[i] = RadioDe(moldes[i]);
         }
 
-        Vector2 despejeCentro = mapa.SectorCenterWorld(Vector2Int.zero);
+        Vector2 despejeCentro = mapa.SectorCenterWorld(mapa.SectorInicial);
 
         foreach (Vector2Int s in sectores)
         {
@@ -116,6 +116,14 @@ public class CampoObjetos : MonoBehaviour
                         Lerp(-mitad.y, mitad.y, rng));
 
                     if (Vector2.Distance(pos, despejeCentro) < despejeNave + radio)
+                    {
+                        continue;
+                    }
+
+                    // ni adentro de una zona protegida, como la base:
+                    // si naciera ahí, el campo lo escupiría de golpe en
+                    // el primer frame
+                    if (ZonaProtegida.Bloquea(pos, radio))
                     {
                         continue;
                     }

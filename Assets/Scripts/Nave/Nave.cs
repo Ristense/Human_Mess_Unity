@@ -172,11 +172,14 @@ public class Nave : MonoBehaviour
     }
 
     /// <summary>
-    /// No te deja salir del rectángulo del Mapa. Al tocar un borde,
-    /// se recorta la posición Y se anula la velocidad que te seguía
-    /// empujando para afuera — sin esto último, quedás "pegado" al
-    /// borde pero la física te sigue acelerando contra la pared
+    /// No te deja salir de los sectores prendidos del Mapa. Al tocar un
+    /// borde, se recorta la posición Y se anula la velocidad que te
+    /// seguía empujando para afuera — sin esto último, quedás "pegado"
+    /// al borde pero la física te sigue acelerando contra la pared
     /// invisible.
+    ///
+    /// No alcanza con un rectángulo: el mapa puede tener forma de L o
+    /// de T, y entonces hay huecos adentro del rectángulo que lo rodea.
     /// </summary>
     private void ClampABounds()
     {
@@ -185,33 +188,23 @@ public class Nave : MonoBehaviour
             return;
         }
 
-        Rect b = mapa.WorldBounds();
-        Vector2 p = _rb.position;
+        Vector2 dentro = mapa.Recortar(_rb.position, out Vector2 afuera);
+        if (afuera == Vector2.zero)
+        {
+            return;
+        }
+
+        _rb.position = dentro;
+
+        // solo se anula la parte de la velocidad que va hacia afuera:
+        // si venís en diagonal contra una pared, seguís deslizando a lo
+        // largo de ella en vez de clavarte
         Vector2 v = _rb.linearVelocity;
-
-        if (p.x < b.xMin)
+        float saliendo = Vector2.Dot(v, afuera);
+        if (saliendo > 0f)
         {
-            p.x = b.xMin;
-            v.x = Mathf.Max(v.x, 0f);
+            v -= afuera * saliendo;
         }
-        else if (p.x > b.xMax)
-        {
-            p.x = b.xMax;
-            v.x = Mathf.Min(v.x, 0f);
-        }
-
-        if (p.y < b.yMin)
-        {
-            p.y = b.yMin;
-            v.y = Mathf.Max(v.y, 0f);
-        }
-        else if (p.y > b.yMax)
-        {
-            p.y = b.yMax;
-            v.y = Mathf.Min(v.y, 0f);
-        }
-
-        _rb.position = p;
         _rb.linearVelocity = v;
     }
 }

@@ -9112,7 +9112,7 @@ MonoBehaviour:
   maxSectores: 9
   formaAleatoria: 1
   worldSeed: 0
-  dibujarGizmos: 1
+  dibujarGizmos: 0
   colorLinea: {r: 0.4, g: 0.8, b: 1, a: 0.6}
   colorApagado: {r: 0.4, g: 0.8, b: 1, a: 0.1}
   colorSectorInicial: {r: 0.3, g: 1, b: 0.5, a: 0.15}
@@ -9293,6 +9293,12 @@ MonoBehaviour:
   offsetRotacionSprite: -90
   tiempoSuavizado: 0.08
   camara: {fileID: 519420031}
+  chocar: 1
+  capasSolidas:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  margenChoque: 0.01
+  nave: {fileID: 0}
 --- !u!1 &2045855195
 GameObject:
   m_ObjectHideFlags: 0

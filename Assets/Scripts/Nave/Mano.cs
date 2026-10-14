@@ -83,9 +83,11 @@ public class Mano : MonoBehaviour
     [Range(0f, 1f)]
     [SerializeField] private float torqueReaccion = 0.12f;
 
-    [Tooltip("Pasada esta distancia entre la mano y el punto agarrado, " +
-        "la mano no da más y suelta.")]
+    [Tooltip("Cuánto más allá del largo del brazo se puede ir el punto " +
+        "agarrado antes de que la mano no dé más y suelte. Se mide " +
+        "desde el hombro: la mano ya no se despega de la pieza.")]
     [SerializeField] private float distanciaRuptura = 0.5f;
+
     [Header("Equipar")]
     [Tooltip("La Zona de la mano, donde se enchufa la herramienta al " +
         "equiparla. Tiene que ser hija del objeto Mano (para que la " +
@@ -107,9 +109,11 @@ public class Mano : MonoBehaviour
         "parecido al Cell Size de las zonas.")]
     [SerializeField] private float radioMontaje = 0.3f;
 
-    [Tooltip("Mientras lo tengas agarrado, que la pieza atraviese la " +
-        "nave en vez de chocarla. Si no, la estás empujando contra tu " +
-        "propio casco y las dos se sacuden.")]
+    [Tooltip("Mientras tengas agarrado un MÓDULO o herramienta, que " +
+        "atraviese la nave en vez de chocarla — si no, lo empujás " +
+        "contra tu propio casco y se sacuden. Las rocas y todo lo demás " +
+        "chocan siempre: si las atravesara, un asteroide te arrastraría " +
+        "a través del casco y quedarías encimado.")]
     [SerializeField] private bool atraviesaLaNave = true;
 
     [Tooltip("Escupe por Consola qué agarra, qué suelta y dónde se " +
@@ -136,6 +140,7 @@ public class Mano : MonoBehaviour
     }
 
     private Vector2 _anclaLocal;
+    private DistanceJoint2D _limite;
     private float _cargaTecla;
     private bool _esperaSoltar;
     private bool _giroCongelado;
@@ -156,8 +161,60 @@ public class Mano : MonoBehaviour
         if (brazo != null)
         {
             brazo.AimOverride = null;
+            brazo.Ignorar = null;
+        }
+        if (_limite != null)
+        {
+            Destroy(_limite);
+            _limite = null;
         }
         IgnorarContraLaNave(false);
+    }
+
+    /// <summary>
+    /// El largo máximo del brazo, como una restricción dura del motor de
+    /// física: el punto agarrado nunca puede quedar más lejos del hombro
+    /// que lo que mide el brazo.
+    ///
+    /// El resorte maneja todo lo que pasa adentro de ese alcance — empujar,
+    /// traer, acomodar — pero tiene topes, y cuando la nave y la pieza
+    /// vienen las dos en movimiento las inercias le ganan y se separan.
+    /// Esto es lo que lo impide: al estirarse del todo, el motor reparte
+    /// según las masas y uno arrastra al otro.
+    ///
+    /// Es una cuerda, no una barra (maxDistanceOnly): no hace nada mientras
+    /// estén cerca, y se pone tensa solo al llegar al tope. Y sus dos
+    /// anclajes son FIJOS —el hombro en la nave, el punto en la pieza—,
+    /// que es lo que la diferencia de la junta rígida que probamos antes:
+    /// esa movía el anclaje cada paso y por eso se sacudía.
+    /// </summary>
+    private void CrearLimite()
+    {
+        if (nave == null || brazo == null || Agarrado == null)
+        {
+            return;
+        }
+
+        Vector2 hombro = brazo.Hombro;
+        Vector2 punto = Agarrado.transform.TransformPoint(_anclaLocal);
+
+        _limite = nave.gameObject.AddComponent<DistanceJoint2D>();
+        _limite.autoConfigureConnectedAnchor = false;
+        _limite.autoConfigureDistance = false;
+        _limite.connectedBody = Agarrado;
+        _limite.anchor = nave.transform.InverseTransformPoint(hombro);
+        _limite.connectedAnchor = _anclaLocal;
+        _limite.maxDistanceOnly = true;
+
+        // Por defecto un joint apaga las colisiones entre sus dos
+        // cuerpos. Acá NO: la roca tiene que seguir chocando con el
+        // casco, si no te arrastraría a través de él.
+        _limite.enableCollision = true;
+
+        // Si lo agarraste con el radio de cortesía, el punto puede estar
+        // un poco más lejos que el largo del brazo. Arrancar ahí evita
+        // un tirón al agarrar; después se va ajustando (ver FixedUpdate).
+        _limite.distance = Mathf.Max(brazo.AlcanceMax, Vector2.Distance(hombro, punto));
     }
 
     private bool QuiereEquipar()
@@ -381,16 +438,25 @@ public class Mano : MonoBehaviour
     }
 
     /// <summary>
-    /// El agarre es un RESORTE con amortiguador, aplicado EN EL PUNTO
-    /// que agarraste. Todo lo demás sale gratis de ahí: lo pesado
-    /// cuesta (F = m·a), la pieza pivotea (hay palanca), la nave se
-    /// mueve (la reacción es literalmente -F) y al soltar sale
-    /// despedida con la velocidad que traía.
+    /// El agarre es un RESORTE ENTRE DOS CUERPOS: la pieza y la nave,
+    /// unidos por el brazo. No un resorte que tira de la pieza hacia un
+    /// punto fijo del mundo.
     ///
-    /// Las tres cuentas finas de abajo son las que hacen la diferencia
-    /// entre que funcione y que la pieza salga eyectada. Están acá
-    /// porque ya nos pasó: son las mismas correcciones que hubo que
-    /// hacer en la versión de Godot.
+    /// La diferencia es lo que hace que agarrar algo pesado no te tire
+    /// la nave a la mierda:
+    ///
+    ///   - el amortiguador frena la velocidad RELATIVA (pieza menos
+    ///     nave, en el punto de agarre). Si frenara solo la de la pieza,
+    ///     a la nave le llegaría la reacción sin ningún freno: empujones
+    ///     sin amortiguar, que con algo pesado se van acumulando.
+    ///
+    ///   - los topes de rigidez y freno salen de la MASA REDUCIDA del
+    ///     par, 1/(1/m_pieza + 1/m_nave). Con un asteroide enorme queda
+    ///     ≈ la masa de la nave, así que los topes se ajustan solos a lo
+    ///     que la nave aguanta. Con algo liviano queda ≈ la de la pieza.
+    ///
+    /// Y como en Godot: la mano se queda CLAVADA en el punto agarrado,
+    /// y lo que tironea es la INTENCIÓN (el mouse) contra ese punto.
     /// </summary>
     private void FixedUpdate()
     {
@@ -406,71 +472,81 @@ public class Mano : MonoBehaviour
         }
 
         Vector2 punto = Agarrado.transform.TransformPoint(_anclaLocal);
-        Vector2 destino = brazo.ManoGlobal;
 
-        if (Vector2.Distance(punto, destino) > distanciaRuptura)
+        // la mano queda pegada donde agarraste, no sigue al mouse
+        brazo.AimOverride = punto;
+
+        // La intención se recorta al alcance del brazo: un brazo no
+        // puede tironear más allá de lo que mide. Sin esto, alejar el
+        // mouse a la otra punta de la pantalla tiraba con fuerza máxima.
+        Vector2 hombro = brazo.Hombro;
+        float alcance = brazo.AlcanceMax;
+        Vector2 intencion = brazo.Intencion;
+        Vector2 desdeHombro = intencion - hombro;
+        if (desdeHombro.magnitude > alcance)
+        {
+            intencion = hombro + desdeHombro.normalized * alcance;
+        }
+
+        // El límite del brazo se va cerrando como un trinquete: si
+        // arrancó flojo (agarre de cortesía), cada vez que la pieza se
+        // acerca el tope baja a esa distancia, hasta quedar en el largo
+        // real del brazo. Nunca se vuelve a aflojar.
+        float distancia = Vector2.Distance(punto, hombro);
+        if (_limite != null)
+        {
+            _limite.distance = Mathf.Max(alcance, Mathf.Min(_limite.distance, distancia));
+        }
+
+        // Red de seguridad: con el límite puesto esto no debería pasar
+        // nunca. Si pasa (sin nave, o algo se trabó), suelta antes que
+        // dejar un agarre roto.
+        if (distancia > alcance + distanciaRuptura)
         {
             Soltar();
             return;
         }
 
-        // r se mide desde el CENTRO DE MASA, no desde el origen del
-        // objeto. Coinciden solo si el collider está centrado; en una
-        // herramienta no lo está, y medir desde el origen da una masa
-        // efectiva varias veces mayor que la real.
-        Vector2 r = punto - Agarrado.worldCenterOfMass;
+        // --- la pieza, en el punto agarrado ---
+        Vector2 rPieza = punto - Agarrado.worldCenterOfMass;
+        Vector2 vPieza = VelocidadEn(Agarrado, rPieza);
+        float mPieza = MasaEfectiva(Agarrado, rPieza);
 
-        // angularVelocity de Unity viene en GRADOS/seg. Para componer
-        // la velocidad del punto hay que pasarla a radianes, si no el
-        // término de giro sale ~57 veces más grande.
-        float w = Agarrado.angularVelocity * Mathf.Deg2Rad;
-
-        // velocidad DEL PUNTO AGARRADO: la lineal más lo que aporta el
-        // giro. Hay que amortiguar esta y no la del centro, porque la
-        // fuerza se aplica con palanca y hace rotar la pieza.
-        Vector2 vPunto = Agarrado.linearVelocity + w * new Vector2(-r.y, r.x);
-
-        // MASA EFECTIVA en el punto agarrado. Tirar del borde no cuesta
-        // lo mismo que tirar del centro: parte del esfuerzo se va en
-        // hacerla girar, así que "pesa" menos, a veces 3 o 4 veces.
-        //
-        // Acá está el bug que te eyecta el asteroide: si amortiguás
-        // usando la masa TOTAL, el freno queda más fuerte que la
-        // inercia que tiene que frenar. Y un freno así no frena —
-        // invierte la velocidad y la devuelve más grande cada paso.
-        float inercia = Agarrado.inertia;
-        float mEff = Agarrado.mass;
-        if (inercia > 0f)
+        // --- la nave, en el MISMO punto: ahí está apoyada la mano ---
+        Vector2 vNave = Vector2.zero;
+        float mRed = mPieza;
+        if (nave != null)
         {
-            mEff = 1f / (1f / Agarrado.mass + r.sqrMagnitude / inercia);
+            Vector2 rNave = punto - nave.worldCenterOfMass;
+            vNave = VelocidadEn(nave, rNave);
+            float mNave = MasaEfectiva(nave, rNave);
+            mRed = 1f / (1f / mPieza + 1f / mNave);
         }
 
-        // La rigidez se recorta a lo que el paso de física aguanta. Un
-        // resorte con frecuencia propia muy alta para el dt no se
-        // integra bien: se pasa de largo y rebota cada vez más fuerte.
-        float k = Mathf.Min(rigidez, mEff / (dt * dt) * 0.1f);
+        // Rigidez acotada a lo que el paso de física aguanta: un resorte
+        // demasiado rígido para el dt se pasa de largo y rebota cada vez
+        // más fuerte.
+        float k = Mathf.Min(rigidez, mRed / (dt * dt) * 0.1f);
 
-        // crítico para ESA masa efectiva, y nunca más fuerte de lo que
-        // el paso de física puede resolver
-        float c = Mathf.Min(2f * Mathf.Sqrt(k * mEff), mEff / dt * 0.9f);
+        // crítico para esa masa, y nunca más fuerte de lo que el paso de
+        // física puede resolver
+        float c = Mathf.Min(2f * Mathf.Sqrt(k * mRed), mRed / dt * 0.9f);
 
         // Se recorta SOLO el resorte, nunca la suma: recortar el total
-        // hace que al pasarse del tope el recorte se coma también el
-        // amortiguador, justo cuando más falta hace.
-        Vector2 resorte = Vector2.ClampMagnitude((destino - punto) * k, fuerzaMaxima);
-        Vector2 f = resorte - vPunto * c;
+        // se comería el amortiguador justo cuando más falta.
+        Vector2 resorte = Vector2.ClampMagnitude((intencion - punto) * k, fuerzaMaxima);
+        Vector2 f = resorte - (vPieza - vNave) * c;
 
-        // En el punto agarrado, no en el centro: ahí está la palanca
-        // que la hace pivotear. Unity toma el punto en MUNDO y calcula
-        // el torque solo.
+        // En el punto agarrado: ahí está la palanca que la hace pivotear.
         Agarrado.AddForceAtPosition(f, punto);
 
-        // El apretón. Hace falta aparte porque el amortiguador de
-        // arriba mide la velocidad DEL PUNTO, y una pieza que gira
-        // justo alrededor de ese punto lo tiene quieto: el freno no ve
-        // nada y la deja girando para siempre.
+        // El apretón. Aparte del amortiguador porque una pieza que gira
+        // justo alrededor del punto agarrado lo tiene quieto: el freno de
+        // arriba no la ve y la dejaría girando para siempre.
+        float inercia = Agarrado.inertia;
         if (frenoGiro > 0f && inercia > 0f && !_giroCongelado)
         {
+            float w = Agarrado.angularVelocity * Mathf.Deg2Rad;
             float tope = inercia / dt * 0.5f;
             Agarrado.AddTorque(Mathf.Clamp(-w * inercia * frenoGiro, -tope, tope));
         }
@@ -479,8 +555,38 @@ public class Mano : MonoBehaviour
     }
 
     /// <summary>
-    /// Acción y reacción: a la nave le llega exactamente la fuerza
-    /// opuesta a la que el brazo le hace a la pieza. No hay ninguna
+    /// Velocidad de un punto de un cuerpo: la lineal más lo que aporta
+    /// el giro. r va desde el centro de masa.
+    ///
+    /// angularVelocity de Unity viene en GRADOS/seg: hay que pasarla a
+    /// radianes, si no el término de giro sale ~57 veces más grande.
+    /// </summary>
+    private static Vector2 VelocidadEn(Rigidbody2D rb, Vector2 r)
+    {
+        float w = rb.angularVelocity * Mathf.Deg2Rad;
+        return rb.linearVelocity + w * new Vector2(-r.y, r.x);
+    }
+
+    /// <summary>
+    /// Cuánto "pesa" un cuerpo empujado desde un punto que no es su
+    /// centro: parte del empuje se va en hacerlo girar, así que se mueve
+    /// como si pesara menos. Con palanca puede ser 3 o 4 veces menos.
+    /// Amortiguar con la masa total en vez de esta es lo que hacía que
+    /// la pieza saliera eyectada.
+    /// </summary>
+    private static float MasaEfectiva(Rigidbody2D rb, Vector2 r)
+    {
+        float inercia = rb.inertia;
+        if (inercia <= 0f)
+        {
+            return rb.mass;
+        }
+        return 1f / (1f / rb.mass + r.sqrMagnitude / inercia);
+    }
+
+    /// <summary>
+    /// Acción y reacción: a la nave le llega la fuerza opuesta a la que
+    /// el brazo le hace a la pieza, en el mismo punto. No hay ninguna
     /// fórmula inventada acá — por eso agarrar un asteroide pesado te
     /// arrastra a vos.
     /// </summary>
@@ -494,8 +600,10 @@ public class Mano : MonoBehaviour
         Vector2 reac = Vector2.ClampMagnitude(-f * reaccionNave, tironMaximo);
         nave.AddForce(reac);
 
-        // El torque va dosificado: entero descontrola, porque la nave
-        // no tiene amortiguación angular y el giro se acumula sin freno.
+        // El torque va dosificado: la nave no tiene amortiguación
+        // angular propia, y entero puede ponerla a girar. Con el freno
+        // relativo de arriba aguanta bastante más que antes — probá
+        // subirlo si querés que el tirón también te gire.
         Vector2 palanca = punto - nave.worldCenterOfMass;
         nave.AddTorque((palanca.x * reac.y - palanca.y * reac.x) * torqueReaccion);
     }
@@ -576,6 +684,39 @@ public class Mano : MonoBehaviour
         return c != null && c.attachedRigidbody != null && c.attachedRigidbody != nave;
     }
 
+    private readonly System.Collections.Generic.List<Collider2D> _colsPieza =
+        new System.Collections.Generic.List<Collider2D>();
+
+    /// <summary>
+    /// El punto del BORDE de la pieza más cercano a la mano. Si la mano
+    /// ya está encima de la pieza (pasa con los módulos, que no frenan
+    /// al brazo), ClosestPoint devuelve el mismo punto y el agarre queda
+    /// donde tocaste.
+    /// </summary>
+    private Vector2 PuntoDeAgarre(Rigidbody2D rb, Vector2 mano)
+    {
+        Vector2 mejor = mano;
+        float mejorDist = float.MaxValue;
+
+        int n = rb.GetAttachedColliders(_colsPieza);
+        for (int i = 0; i < n; i++)
+        {
+            Collider2D c = _colsPieza[i];
+            if (c == null || c.isTrigger)
+            {
+                continue;
+            }
+            Vector2 p = c.ClosestPoint(mano);
+            float d = (p - mano).sqrMagnitude;
+            if (d < mejorDist)
+            {
+                mejorDist = d;
+                mejor = p;
+            }
+        }
+        return mejor;
+    }
+
     private void Agarrar()
     {
         if (Agarrado != null)
@@ -605,9 +746,20 @@ public class Mano : MonoBehaviour
                 + " | montado? " + (montado != null), Agarrado);
         }
 
-        // el punto exacto donde tocaste, en LOCAL de la pieza: si rota,
-        // el agarre rota con ella, que es lo que uno espera
-        _anclaLocal = Agarrado.transform.InverseTransformPoint(mano);
+        // El punto de agarre, en LOCAL de la pieza: si rota, el agarre
+        // rota con ella. Va sobre el BORDE de la pieza y no donde está
+        // la mano: con una roca, la mano frena antes de tocarla (ver
+        // BrazoIK) y el agarre tiene que quedar en la superficie, no
+        // flotando en el aire ni hundido adentro.
+        _anclaLocal = Agarrado.transform.InverseTransformPoint(PuntoDeAgarre(Agarrado, mano));
+
+        // lo que agarrás no frena al brazo: la mano está pegada a eso
+        if (brazo != null)
+        {
+            brazo.Ignorar = Agarrado;
+        }
+
+        CrearLimite();
 
         // Guardamos las restricciones que traía en vez de asumir que
         // no tenía ninguna: si la pieza venía con algo congelado de
@@ -636,6 +788,12 @@ public class Mano : MonoBehaviour
 
         if (ignorar)
         {
+            // solo los módulos: una roca que atraviesa el casco es
+            // justamente lo que te deja encimado con ella
+            if (Agarrado.GetComponent<Modulo>() == null)
+            {
+                return;
+            }
             if (_colsNave == null)
             {
                 _colsNave = nave.GetComponentsInChildren<Collider2D>(true);

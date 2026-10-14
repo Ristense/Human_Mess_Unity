@@ -105,15 +105,136 @@ public class BrazoIK : MonoBehaviour
         // Suavizando antes de resolver la IK, el brazo sigue siendo
         // rígido en todo momento, solo que apunta con un poquito de
         // retraso.
-        if (!_tieneObjetivoSuave)
+        if (!_tieneObjetivoSuave || AimOverride.HasValue)
         {
+            // Con AimOverride la mano va CLAVADA ahí, sin retraso: está
+            // sosteniendo algo y tiene que quedar pegada al punto de
+            // agarre. Si lo suavizáramos, se despegaría mientras la
+            // pieza se mueve.
             _objetivoSuave = objetivo;
+            _velocidadSuave = Vector2.zero;
             _tieneObjetivoSuave = true;
         }
         _objetivoSuave = Vector2.SmoothDamp(_objetivoSuave, objetivo, ref _velocidadSuave, tiempoSuavizado);
 
-        ResolverIK(hombro.position, _objetivoSuave);
+        // El freno contra lo sólido va DESPUÉS del suavizado y no se
+        // guarda en él: si se guardara, el objetivo suave quedaría
+        // pegado al borde y al sacar el mouse de la roca tardaría en
+        // despegarse.
+        ResolverIK(hombro.position, Bloquear(hombro.position, _objetivoSuave));
         ActualizarVisual();
+    }
+
+    // ------------------------------------------------------------------
+    //  Choque de la mano contra lo sólido
+    // ------------------------------------------------------------------
+
+    [Header("Choque")]
+    [Tooltip("Que la mano no pueda meterse adentro de las cosas: se " +
+        "frena en el borde. Sin esto atraviesa las rocas y las agarra " +
+        "desde adentro.")]
+    [SerializeField] private bool chocar = true;
+
+    [Tooltip("Qué capas frenan a la mano.")]
+    [SerializeField] private LayerMask capasSolidas = ~0;
+
+    [Tooltip("Cuánto se queda la mano antes del borde. Tiene que ser " +
+        "MENOR que el Radio Agarre de la Mano, si no queda frenada " +
+        "fuera de alcance de lo que toca.")]
+    [SerializeField] private float margenChoque = 0.01f;
+
+    [Tooltip("La nave: sus propios colliders no frenan al brazo. Vacío " +
+        "= la busca hacia arriba en la jerarquía.")]
+    [SerializeField] private Rigidbody2D nave;
+
+    /// <summary>
+    /// Lo que la mano tiene agarrado: tampoco la frena, porque la mano
+    /// está pegada a eso. Lo setea la Mano.
+    /// </summary>
+    public Rigidbody2D Ignorar { get; set; }
+
+    /// <summary>Dónde está el hombro, en mundo.</summary>
+    public Vector2 Hombro => hombro != null ? (Vector2)hombro.position : (Vector2)transform.position;
+
+    /// <summary>Hasta dónde llega el brazo estirado.</summary>
+    public float AlcanceMax => largoSuperior + largoInferior;
+
+    /// <summary>
+    /// A dónde QUERÉS llevar la mano: el mouse, aunque la mano esté
+    /// clavada en otro lado sosteniendo algo. Es lo que tironea de lo
+    /// agarrado — si se midiera contra la mano, que ya está sobre la
+    /// pieza, el error daría ~0 y no se movería nada.
+    /// </summary>
+    public Vector2 Intencion => MousePlanoMundo();
+
+    private readonly RaycastHit2D[] _impactos = new RaycastHit2D[16];
+
+    private void Awake()
+    {
+        if (nave == null)
+        {
+            nave = GetComponentInParent<Rigidbody2D>();
+        }
+    }
+
+    /// <summary>
+    /// Tira una línea del hombro al objetivo y, si se cruza con algo
+    /// sólido, devuelve el punto donde entra — un pelito antes. Es lo
+    /// que hace que la mano tope contra el borde en vez de atravesar.
+    /// </summary>
+    private Vector2 Bloquear(Vector2 desde, Vector2 hasta)
+    {
+        if (!chocar)
+        {
+            return hasta;
+        }
+
+        Vector2 d = hasta - desde;
+        float largo = d.magnitude;
+        if (largo < 0.00001f)
+        {
+            return hasta;
+        }
+        Vector2 dir = d / largo;
+
+        var filtro = new ContactFilter2D();
+        filtro.SetLayerMask(capasSolidas);
+        filtro.useTriggers = false;
+        int n = Physics2D.Raycast(desde, dir, filtro, _impactos, largo);
+
+        // se busca el más cercano a mano en vez de confiar en el orden
+        // en que vienen los resultados
+        float mejor = float.MaxValue;
+        for (int i = 0; i < n; i++)
+        {
+            RaycastHit2D h = _impactos[i];
+            // fraction 0 = la línea arranca adentro de eso. Pasa si la
+            // nave ya quedó encimada con algo: frenar ahí dejaría la
+            // mano clavada en el hombro.
+            if (h.fraction <= 0f || !Frena(h.collider))
+            {
+                continue;
+            }
+            mejor = Mathf.Min(mejor, h.distance);
+        }
+
+        if (mejor == float.MaxValue)
+        {
+            return hasta;
+        }
+        return desde + dir * Mathf.Max(0f, mejor - margenChoque);
+    }
+
+    private bool Frena(Collider2D c)
+    {
+        Rigidbody2D rb = c.attachedRigidbody;
+        if (rb != null && (rb == nave || rb == Ignorar))
+        {
+            return false;
+        }
+        // los módulos y herramientas no frenan: se agarran desde
+        // cualquier punto, y no tiene sentido chocar contra ellos
+        return c.GetComponentInParent<Modulo>() == null;
     }
 
     private Vector2 _objetivoSuave;

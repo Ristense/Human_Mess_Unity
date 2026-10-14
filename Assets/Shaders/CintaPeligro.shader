@@ -71,7 +71,17 @@ Shader "HumanMess/CintaPeligro"
                 Varyings OUT;
                 OUT.positionHCS = TransformObjectToHClip(IN.positionOS.xyz);
                 OUT.uv = IN.uv;
-                OUT.color = IN.color;
+                // El Color del SpriteRenderer llega por DOS caminos según si el
+                // SRP Batcher 2D está activo: por el color de vértice, o en
+                // unity_SpriteColor. Siempre uno de los dos viene en blanco, así que
+                // multiplicando ambos el tinte se aplica una sola vez en cualquier
+                // caso. Sin unity_SpriteColor, con el batcher prendido, cambiarle el
+                // color al sprite no hacía nada.
+                //
+                // Lo que no es un sprite (una Image de UI, una malla) no la llena y
+                // viene en cero: ahí se toma como blanco, si no quedaría negro.
+                float4 tinteSprite = any(unity_SpriteColor) ? unity_SpriteColor : float4(1, 1, 1, 1);
+                OUT.color = IN.color * tinteSprite;
                 return OUT;
             }
 

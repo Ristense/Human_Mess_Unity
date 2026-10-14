@@ -153,6 +153,20 @@ public class BrazoIK : MonoBehaviour
     /// </summary>
     public Rigidbody2D Ignorar { get; set; }
 
+    /// <summary>
+    /// Cuánto sobresale de la mano la herramienta calzada, hacia adelante.
+    /// El freno contra lo sólido cuenta esto, así la que queda en el
+    /// borde es la PUNTA de la herramienta y no la mano. Lo setea la Mano.
+    /// </summary>
+    public float AlcanceExtra { get; set; }
+
+    /// <summary>
+    /// Medio ancho de la herramienta calzada. Con esto el freno pasa de
+    /// ser una línea a ser un círculo de este radio: la herramienta no se
+    /// puede colar en un agujero más angosto que ella. Lo setea la Mano.
+    /// </summary>
+    public float RadioExtra { get; set; }
+
     /// <summary>Dónde está el hombro, en mundo.</summary>
     public Vector2 Hombro => hombro != null ? (Vector2)hombro.position : (Vector2)transform.position;
 
@@ -197,10 +211,21 @@ public class BrazoIK : MonoBehaviour
         }
         Vector2 dir = d / largo;
 
+        // la línea se estira lo que sobresale la herramienta: lo que no
+        // puede atravesar las cosas es su punta, que va más adelante
+        float extra = Mathf.Max(0f, AlcanceExtra);
+
         var filtro = new ContactFilter2D();
         filtro.SetLayerMask(capasSolidas);
         filtro.useTriggers = false;
-        int n = Physics2D.Raycast(desde, dir, filtro, _impactos, largo);
+
+        // Con herramienta, un círculo de su ancho en vez de una línea: una
+        // línea pasa por cualquier grieta, y la herramienta se metía
+        // adentro de los pozos angostos que ella misma abría.
+        float radio = Mathf.Max(0f, RadioExtra);
+        int n = radio > 0f
+            ? Physics2D.CircleCast(desde, radio, dir, filtro, _impactos, largo + extra)
+            : Physics2D.Raycast(desde, dir, filtro, _impactos, largo + extra);
 
         // se busca el más cercano a mano en vez de confiar en el orden
         // en que vienen los resultados
@@ -222,7 +247,9 @@ public class BrazoIK : MonoBehaviour
         {
             return hasta;
         }
-        return desde + dir * Mathf.Max(0f, mejor - margenChoque);
+        // la mano frena lo que sobresale la herramienta ANTES del borde,
+        // así la punta queda justo en la superficie
+        return desde + dir * Mathf.Clamp(mejor - extra - margenChoque, 0f, largo);
     }
 
     private bool Frena(Collider2D c)

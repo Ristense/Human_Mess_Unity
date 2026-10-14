@@ -123,6 +123,12 @@ public class Mano : MonoBehaviour
     /// <summary>Lo que tenemos agarrado ahora, o null.</summary>
     public Rigidbody2D Agarrado { get; private set; }
 
+    /// <summary>La nave a la que está pegada esta mano.</summary>
+    public Rigidbody2D Nave => nave;
+
+    /// <summary>¿Hay algo calzado en el socket de la mano?</summary>
+    public bool TieneEquipado => socketMano != null && socketMano.Montado() != null;
+
     /// <summary>
     /// Cuánto va cargada la tecla, de 0 a 1. Para la barrita: si da 0
     /// no hay nada en curso y conviene esconderla.
@@ -249,6 +255,43 @@ public class Mano : MonoBehaviour
         // y tecla no importa: esto se chequea todos los frames, así
         // que si venías con E apretada se equipa apenas la agarrás.
         CargarTecla();
+
+        Herramienta calzada = HerramientaCalzada();
+        brazo.AlcanceExtra = LoQueSobresale(calzada);
+        brazo.RadioExtra = calzada != null ? calzada.Grosor : 0f;
+    }
+
+    private Herramienta HerramientaCalzada()
+    {
+        Modulo calzada = socketMano != null ? socketMano.Montado() : null;
+        if (calzada != null && calzada.TryGetComponent(out Herramienta h))
+        {
+            return h;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Cuánto sobresale hacia adelante la punta de la herramienta calzada,
+    /// medido a lo largo del antebrazo. El brazo lo usa para frenar antes:
+    /// así la que no atraviesa las rocas es la punta, no solo la mano.
+    /// </summary>
+    private float LoQueSobresale(Herramienta h)
+    {
+        if (h == null || h.Punta == null)
+        {
+            return 0f;
+        }
+
+        Vector2 antebrazo = brazo.ManoGlobal - brazo.CodoGlobal;
+        if (antebrazo.sqrMagnitude < 0.000001f)
+        {
+            return 0f;
+        }
+        // proyectado sobre el antebrazo: si la herramienta va un poco
+        // ladeada, lo que cuenta es cuánto adelanta, no la distancia
+        Vector2 hastaPunta = (Vector2)h.Punta.position - brazo.ManoGlobal;
+        return Mathf.Max(0f, Vector2.Dot(hastaPunta, antebrazo.normalized));
     }
 
     /// <summary>

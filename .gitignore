@@ -54,3 +54,6 @@ Thumbs.db
 # Textura 8K de 90MB - demasiado pesada para git (ver nota)
 Assets/Planeta_Difusse8k.png
 Assets/Planeta_Difusse8k.png.meta
+
+# Copias de respaldo automaticas de Inkscape (archivo.svg.FECHA.svg)
+*.svg.*.svg

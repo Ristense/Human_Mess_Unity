@@ -48,9 +48,29 @@ public class Herramienta : MonoBehaviour
         Usuario = GetComponentInParent<Mano>();
     }
 
-    /// <summary>Hacia dónde apunta: de la herramienta a su punta.</summary>
+    /// <summary>
+    /// Dónde está la punta para el brazo (cuánto sobresale la
+    /// herramienta). Una herramienta cuya punta se va de viaje (el perno
+    /// del anclaje) devuelve acá dónde estaría guardada.
+    /// </summary>
+    public virtual Vector2 PosicionPunta => punta != null ? (Vector2)punta.position : (Vector2)transform.position;
+
+    /// <summary>
+    /// Hacia dónde apunta. En la mano, hacia donde mira la mano (la línea
+    /// al mouse): así no depende de dónde quedó el pivote del dibujo, que
+    /// puede estar corrido del eje del cañón. Suelta, de la herramienta a
+    /// su punta.
+    /// </summary>
     protected Vector2 Direccion()
     {
+        if (Usuario != null)
+        {
+            Vector2 mira = Usuario.Mira;
+            if (mira.sqrMagnitude > 0.0000001f)
+            {
+                return mira.normalized;
+            }
+        }
         if (punta != null)
         {
             Vector2 d = punta.position - transform.position;

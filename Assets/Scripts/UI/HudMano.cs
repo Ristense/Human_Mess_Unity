@@ -78,6 +78,33 @@ public class HudMano : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Clic derecho en el componente → "Usar la posición de ahora": mide
+    /// dónde dejaste el indicador en el editor respecto a la mano, y lo
+    /// guarda como desplazamiento. Así en Play queda donde lo pusiste.
+    /// </summary>
+    [ContextMenu("Usar la posición de ahora")]
+    private void UsarPosicionDeAhora()
+    {
+        Awake();
+        if (objetivo == null || camara == null || _canvas == null)
+        {
+            Debug.LogWarning("Falta el objetivo, la cámara o el Canvas.", this);
+            return;
+        }
+#if UNITY_EDITOR
+        UnityEditor.Undo.RecordObject(this, "Usar la posición de ahora");
+#endif
+        Vector2 d = SeguirEnPantalla.PosicionEnPantalla(_canvas, _rect)
+            - (Vector2)camara.WorldToScreenPoint(objetivo.position);
+
+        // Seguir() le resta la separación opuesta: se le suma acá para
+        // que con la mano como está ahora caiga justo donde está
+        float rad = (objetivo.eulerAngles.z + offsetRotacion) * Mathf.Deg2Rad;
+        d += new Vector2(Mathf.Cos(rad), Mathf.Sin(rad)) * separacionOpuesta;
+        desplazamiento = d;
+    }
+
     private void LateUpdate()
     {
         if (mano == null || camara == null)

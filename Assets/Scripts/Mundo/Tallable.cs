@@ -48,6 +48,41 @@ public class Tallable : MonoBehaviour
         "termina con cientos de puntos: es el lag que se va juntando.")]
     [SerializeField] private float simplificar = 0.002f;
 
+    [Tooltip("Diagnóstico: dibuja en rojo, en la Scene, las piezas que " +
+        "la física armó de verdad con el collider. Si no calzan con la " +
+        "roca que se ve, el problema está ahí.")]
+    [SerializeField] private bool verFisica;
+
+    private void OnDrawGizmos()
+    {
+        if (!verFisica || _col == null)
+        {
+            return;
+        }
+        var grupo = new PhysicsShapeGroup2D();
+        _col.GetShapes(grupo);
+        var vertices = new List<Vector2>();
+        Gizmos.color = Color.red;
+        for (int i = 0; i < grupo.shapeCount; i++)
+        {
+            PhysicsShape2D s = grupo.GetShape(i);
+            vertices.Clear();
+            grupo.GetShapeVertices(i, vertices);
+            if (s.shapeType != PhysicsShapeType2D.Polygon)
+            {
+                continue;
+            }
+            // vienen relativos al Rigidbody2D (sin escala)
+            Quaternion giro = Quaternion.Euler(0f, 0f, _rb != null ? _rb.rotation : 0f);
+            Vector3 origen = _rb != null ? (Vector3)_rb.position : Vector3.zero;
+            for (int j = 0; j < vertices.Count; j++)
+            {
+                Gizmos.DrawLine(origen + giro * vertices[j],
+                    origen + giro * vertices[(j + 1) % vertices.Count]);
+            }
+        }
+    }
+
     // Clipper trabaja con enteros por dentro: 4 decimales = 0.0001
     // unidades, que a PPU 1000 es un décimo de píxel. Con los 2 que trae
     // por defecto, a esta escala las rocas quedaban serruchadas.
@@ -190,6 +225,47 @@ public class Tallable : MonoBehaviour
 
         Aplicar(new PathsD { pedazos[0] });
         return quitado;
+    }
+
+    /// <summary>¿Ya se le cortó algo? Desde ahí el sprite no es su forma.</summary>
+    public bool EstaTallado => _comoMalla;
+
+    /// <summary>
+    /// La forma de verdad, en MUNDO, agrandada "margen" para afuera con
+    /// las esquinas redondeadas. El contorno la usa para dibujarse cuando
+    /// el sprite ya no sirve.
+    /// </summary>
+    public List<Vector3> ContornoMundo(float margen)
+    {
+        PathsD forma = _forma;
+        float m = margen / Mathf.Sqrt(Mathf.Max(Escala, 0.000001f));
+        if (m > 0f)
+        {
+            forma = Clipper.InflatePaths(_forma, m, JoinType.Round, EndType.Polygon,
+                2.0, Decimales);
+        }
+
+        var puntos = new List<Vector3>();
+        // con un solo pedazo por objeto, el más grande es el contorno
+        PathD mayor = null;
+        foreach (PathD p in forma)
+        {
+            if (mayor == null || Clipper.Area(p) > Clipper.Area(mayor))
+            {
+                mayor = p;
+            }
+        }
+        if (mayor == null)
+        {
+            return puntos;
+        }
+        foreach (PointD v in mayor)
+        {
+            Vector3 w = transform.TransformPoint(new Vector3((float)v.x, (float)v.y, 0f));
+            w.z = transform.position.z;
+            puntos.Add(w);
+        }
+        return puntos;
     }
 
     // ------------------------------------------------------------------

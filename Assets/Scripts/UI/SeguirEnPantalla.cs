@@ -44,6 +44,36 @@ public class SeguirEnPantalla : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Clic derecho en el componente → "Usar la posición de ahora": mide
+    /// dónde dejaste el elemento en el editor respecto al objetivo, y lo
+    /// guarda como desplazamiento. Así en Play queda donde lo pusiste.
+    /// </summary>
+    [ContextMenu("Usar la posición de ahora")]
+    private void UsarPosicionDeAhora()
+    {
+        Awake();
+        if (objetivo == null || camara == null || _canvas == null)
+        {
+            Debug.LogWarning("Falta el objetivo, la cámara o el Canvas.", this);
+            return;
+        }
+#if UNITY_EDITOR
+        UnityEditor.Undo.RecordObject(this, "Usar la posición de ahora");
+#endif
+        desplazamiento = PosicionEnPantalla(_canvas, _rect)
+            - (Vector2)camara.WorldToScreenPoint(objetivo.position);
+    }
+
+    /// <summary>Dónde está un elemento del Canvas, en píxeles de pantalla.</summary>
+    public static Vector2 PosicionEnPantalla(Canvas canvas, RectTransform rect)
+    {
+        Camera refCam = canvas.renderMode == RenderMode.ScreenSpaceOverlay
+            ? null
+            : canvas.worldCamera;
+        return RectTransformUtility.WorldToScreenPoint(refCam, rect.position);
+    }
+
     private void LateUpdate()
     {
         if (objetivo == null || camara == null || _canvas == null)

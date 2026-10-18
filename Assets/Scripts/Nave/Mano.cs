@@ -126,6 +126,9 @@ public class Mano : MonoBehaviour
     /// <summary>La nave a la que está pegada esta mano.</summary>
     public Rigidbody2D Nave => nave;
 
+    /// <summary>Hacia dónde mira la mano (sin normalizar).</summary>
+    public Vector2 Mira => brazo != null ? brazo.Mira : Vector2.zero;
+
     /// <summary>¿Hay algo calzado en el socket de la mano?</summary>
     public bool TieneEquipado => socketMano != null && socketMano.Montado() != null;
 
@@ -283,15 +286,15 @@ public class Mano : MonoBehaviour
             return 0f;
         }
 
-        Vector2 antebrazo = brazo.ManoGlobal - brazo.CodoGlobal;
-        if (antebrazo.sqrMagnitude < 0.000001f)
+        Vector2 mira = brazo.Mira;
+        if (mira.sqrMagnitude < 0.000001f)
         {
             return 0f;
         }
-        // proyectado sobre el antebrazo: si la herramienta va un poco
-        // ladeada, lo que cuenta es cuánto adelanta, no la distancia
-        Vector2 hastaPunta = (Vector2)h.Punta.position - brazo.ManoGlobal;
-        return Mathf.Max(0f, Vector2.Dot(hastaPunta, antebrazo.normalized));
+        // proyectado sobre hacia donde mira la mano: si la herramienta va
+        // un poco ladeada, lo que cuenta es cuánto adelanta, no la distancia
+        Vector2 hastaPunta = h.PosicionPunta - brazo.ManoGlobal;
+        return Mathf.Max(0f, Vector2.Dot(hastaPunta, mira.normalized));
     }
 
     /// <summary>

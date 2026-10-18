@@ -2,8 +2,9 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Un aviso (la "E") que se prende solo cuando la mano está encima de
-/// algo que se puede agarrar, y se apaga el resto del tiempo.
+/// Un aviso que se prende solo cuando toca: el del clic cuando la mano
+/// está encima de algo que se puede agarrar, el de la E cuando ya lo
+/// tenés agarrado. El resto del tiempo, apagado.
 ///
 /// Usa la misma búsqueda que el agarre (Mano.Candidato), así que se
 /// prende exactamente cuando un clic agarraría algo.
@@ -16,11 +17,25 @@ using UnityEngine.UI;
 /// </summary>
 public class AvisoTecla : MonoBehaviour
 {
+    public enum Cuando
+    {
+        [Tooltip("Mano vacía encima de algo que se puede agarrar (el clic).")]
+        EncimaDeAlgo,
+        [Tooltip("Con algo agarrado (la E, para calzarlo o anclarlo).")]
+        Agarrando,
+        [Tooltip("En los dos casos.")]
+        LasDos,
+    }
+
     [SerializeField] private Mano mano;
 
-    [Tooltip("Que también se vea mientras tenés algo agarrado: ahí la " +
-        "tecla sirve para calzártelo o anclarlo.")]
-    [SerializeField] private bool tambienAgarrando = false;
+    [Tooltip("Cuándo se prende. El aviso del clic va en EncimaDeAlgo, y el " +
+        "de la E en Agarrando.")]
+    [SerializeField] private Cuando cuando = Cuando.EncimaDeAlgo;
+
+    [Tooltip("Partes que se esconden mientras mantenés la tecla (por " +
+        "ejemplo el fondo, para que se vea el slider).")]
+    [SerializeField] private Graphic[] ocultarAlMantener;
 
     private Graphic[] _partes;
     private bool _visible = true;
@@ -40,8 +55,22 @@ public class AvisoTecla : MonoBehaviour
         }
 
         bool agarrando = mano.Agarrado != null;
-        bool visible = agarrando ? tambienAgarrando : mano.Candidato() != null;
+        bool visible = agarrando
+            ? cuando != Cuando.EncimaDeAlgo
+            : cuando != Cuando.Agarrando && mano.Candidato() != null;
         Mostrar(visible);
+
+        if (visible && ocultarAlMantener != null)
+        {
+            bool manteniendo = mano.Progreso > 0f;
+            foreach (Graphic g in ocultarAlMantener)
+            {
+                if (g != null)
+                {
+                    g.enabled = !manteniendo;
+                }
+            }
+        }
     }
 
     private void Mostrar(bool visible)

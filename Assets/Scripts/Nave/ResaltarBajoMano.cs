@@ -37,6 +37,21 @@ public class ResaltarBajoMano : MonoBehaviour
     [Range(1f, 2f)]
     [SerializeField] private float expansion = 1.3f;
 
+    [Header("Rocas talladas")]
+    [Tooltip("Una roca con cortes ya no tiene la forma de su sprite: su " +
+        "contorno se dibuja con una línea que sigue la forma de verdad. " +
+        "Este es el material de esa línea (el Neon_Blanco sirve). Vacío = " +
+        "usa el contorno del sprite, como antes.")]
+    [SerializeField] private Material materialLinea;
+
+    [Tooltip("Para pasar el grosor y el margen de píxeles a unidades. " +
+        "Vacío = Camera.main.")]
+    [SerializeField] private Camera camara;
+
+    private LineRenderer _linea;
+    private static readonly int IdGrosor = Shader.PropertyToID("_Grosor");
+    private static readonly int IdMargen = Shader.PropertyToID("_Margen");
+
     private MaterialPropertyBlock _bloque;
     private static readonly int IdRect = Shader.PropertyToID("_RectUV");
     private static readonly int IdExpansion = Shader.PropertyToID("_Expansion");
@@ -65,7 +80,17 @@ public class ResaltarBajoMano : MonoBehaviour
         bool agarrando = mano.Agarrado != null;
         Rigidbody2D objetivo = agarrando ? mano.Agarrado : mano.Candidato();
 
-        SpriteRenderer original = objetivo != null
+        // tallada: línea por la forma real, y el contorno del sprite apagado
+        Tallable tallada = objetivo != null && materialLinea != null
+            ? objetivo.GetComponent<Tallable>()
+            : null;
+        if (tallada != null && !tallada.EstaTallado)
+        {
+            tallada = null;
+        }
+        DibujarLinea(tallada, agarrando ? colorAgarrado : colorEncima);
+
+        SpriteRenderer original = objetivo != null && tallada == null
             ? objetivo.GetComponentInChildren<SpriteRenderer>()
             : null;
         SpriteRenderer contorno = original != null ? ContornoDe(original) : null;
@@ -146,6 +171,57 @@ public class ResaltarBajoMano : MonoBehaviour
         c.SetPropertyBlock(_bloque);
     }
 
+    /// <summary>
+    /// El contorno de una roca tallada: una línea cerrada que sigue su
+    /// forma real, con el mismo margen y grosor (en píxeles de pantalla)
+    /// que el contorno del shader.
+    /// </summary>
+    private void DibujarLinea(Tallable t, Color color)
+    {
+        if (t == null)
+        {
+            if (_linea != null)
+            {
+                _linea.enabled = false;
+            }
+            return;
+        }
+
+        if (_linea == null)
+        {
+            // suelta y no hija de la roca: va en coordenadas de mundo
+            var go = new GameObject("Contorno (linea)");
+            _linea = go.AddComponent<LineRenderer>();
+            _linea.useWorldSpace = true;
+            _linea.loop = true;
+            _linea.numCornerVertices = 2;
+            _linea.sharedMaterial = materialLinea;
+        }
+
+        Camera cam = camara != null ? camara : Camera.main;
+        float porPixel = cam != null && cam.orthographic
+            ? 2f * cam.orthographicSize / Screen.height
+            : 0.002f;
+        float grosor = materialContorno.GetFloat(IdGrosor) * porPixel;
+        float margen = materialContorno.GetFloat(IdMargen) * porPixel;
+
+        // el centro de la línea va a "margen + medio grosor" del borde
+        List<Vector3> puntos = t.ContornoMundo(margen + grosor * 0.5f);
+        _linea.positionCount = puntos.Count;
+        _linea.SetPositions(puntos.ToArray());
+        _linea.startWidth = _linea.endWidth = grosor;
+        _linea.startColor = _linea.endColor = color;
+
+        Renderer r = t.GetComponentInChildren<MeshRenderer>();
+        if (r != null)
+        {
+            _linea.gameObject.layer = r.gameObject.layer;
+            _linea.sortingLayerID = r.sortingLayerID;
+            _linea.sortingOrder = r.sortingOrder + ordenExtra;
+        }
+        _linea.enabled = puntos.Count > 2;
+    }
+
     private SpriteRenderer ContornoDe(SpriteRenderer original)
     {
         if (_contornos.TryGetValue(original, out SpriteRenderer c) && c != null)
@@ -174,6 +250,10 @@ public class ResaltarBajoMano : MonoBehaviour
         {
             _encendido.enabled = false;
             _encendido = null;
+        }
+        if (_linea != null)
+        {
+            _linea.enabled = false;
         }
     }
 }

@@ -170,6 +170,9 @@ public class BrazoIK : MonoBehaviour
     /// <summary>Dónde está el hombro, en mundo.</summary>
     public Vector2 Hombro => hombro != null ? (Vector2)hombro.position : (Vector2)transform.position;
 
+    /// <summary>Hacia dónde mira la mano ahora (sin normalizar).</summary>
+    public Vector2 Mira => HaciaDondeMira(Hombro, CodoGlobal, ManoGlobal);
+
     /// <summary>Hasta dónde llega el brazo estirado.</summary>
     public float AlcanceMax => largoSuperior + largoInferior;
 
@@ -181,6 +184,15 @@ public class BrazoIK : MonoBehaviour
     /// </summary>
     public Vector2 Intencion => MousePlanoMundo();
 
+    [Tooltip("Escribe en la Console contra qué frena la mano, y lo " +
+        "dibuja en magenta en la Scene.")]
+    [SerializeField] private bool diagnostico;
+
+    [Tooltip("La mano mira hacia el mouse (la línea del hombro) en vez " +
+        "de seguir el ángulo del antebrazo.")]
+    [SerializeField] private bool manoApunta = true;
+
+    private Collider2D _ultimoChoque;
     private readonly RaycastHit2D[] _impactos = new RaycastHit2D[16];
 
     private void Awake()
@@ -211,21 +223,84 @@ public class BrazoIK : MonoBehaviour
         }
         Vector2 dir = d / largo;
 
-        // la línea se estira lo que sobresale la herramienta: lo que no
-        // puede atravesar las cosas es su punta, que va más adelante
-        float extra = Mathf.Max(0f, AlcanceExtra);
-
-        var filtro = new ContactFilter2D();
-        filtro.SetLayerMask(capasSolidas);
-        filtro.useTriggers = false;
-
         // Con herramienta, un círculo de su ancho en vez de una línea: una
         // línea pasa por cualquier grieta, y la herramienta se metía
         // adentro de los pozos angostos que ella misma abría.
         float radio = Mathf.Max(0f, RadioExtra);
+
+        // 1) la mano sola, del hombro hasta el objetivo
+        float mejor = PrimerChoque(desde, dir, radio, largo);
+        float hasta1 = mejor == float.MaxValue
+            ? largo
+            : Mathf.Clamp(mejor - margenChoque, 0f, largo);
+
+        // 2) la herramienta, que sobresale hacia donde mira el ANTEBRAZO
+        // y no hacia donde va la línea del hombro. Antes se estiraba la
+        // línea del hombro, y si el brazo estaba doblado la punta
+        // "chocaba" contra paredes a las que no apuntaba: la mano quedaba
+        // frenada lejos, contra nada.
+        float extra = Mathf.Max(0f, AlcanceExtra);
+        if (extra <= 0f || PuntaLibre(desde, dir, hasta1, radio, extra))
+        {
+            return desde + dir * hasta1;
+        }
+
+        // Si la punta choca, se busca lo más lejos que se puede llegar
+        // con la punta libre, partiendo el rango a la mitad.
+        float bajo = 0f;
+        float alto = hasta1;
+        for (int i = 0; i < 8; i++)
+        {
+            float medio = (bajo + alto) * 0.5f;
+            if (PuntaLibre(desde, dir, medio, radio, extra))
+            {
+                bajo = medio;
+            }
+            else
+            {
+                alto = medio;
+            }
+        }
+        return desde + dir * bajo;
+    }
+
+    /// <summary>¿Con la mano a "t" del hombro, la herramienta entra sin chocar?</summary>
+    private bool PuntaLibre(Vector2 desde, Vector2 dir, float t, float radio, float extra)
+    {
+        Vector2 objetivo = desde + dir * t;
+        Pose(desde, objetivo, out Vector2 codo, out Vector2 mano);
+        Vector2 mira = HaciaDondeMira(desde, codo, mano);
+        if (mira.sqrMagnitude < 0.0000001f)
+        {
+            return true;
+        }
+        return PrimerChoque(mano, mira.normalized, radio, extra + margenChoque) == float.MaxValue;
+    }
+
+    /// <summary>
+    /// Para dónde mira la mano (y lo que tenga calzado). Con "Mano Apunta"
+    /// mira en la línea del hombro, que es la línea hacia el mouse: la
+    /// herramienta va derecho a donde vas y entra recta en los pozos. Sin
+    /// eso sigue al antebrazo, y con el codo doblado queda en diagonal.
+    /// </summary>
+    private Vector2 HaciaDondeMira(Vector2 h, Vector2 codo, Vector2 mano)
+    {
+        return manoApunta ? mano - h : mano - codo;
+    }
+
+    /// <summary>
+    /// A qué distancia choca un círculo de "radio" (0 = una línea) lanzado
+    /// desde "desde". float.MaxValue si no choca con nada que frene.
+    /// </summary>
+    private float PrimerChoque(Vector2 desde, Vector2 dir, float radio, float largo)
+    {
+        var filtro = new ContactFilter2D();
+        filtro.SetLayerMask(capasSolidas);
+        filtro.useTriggers = false;
+
         int n = radio > 0f
-            ? Physics2D.CircleCast(desde, radio, dir, filtro, _impactos, largo + extra)
-            : Physics2D.Raycast(desde, dir, filtro, _impactos, largo + extra);
+            ? Physics2D.CircleCast(desde, radio, dir, filtro, _impactos, largo)
+            : Physics2D.Raycast(desde, dir, filtro, _impactos, largo);
 
         // se busca el más cercano a mano en vez de confiar en el orden
         // en que vienen los resultados
@@ -233,29 +308,39 @@ public class BrazoIK : MonoBehaviour
         for (int i = 0; i < n; i++)
         {
             RaycastHit2D h = _impactos[i];
-            // fraction 0 = la línea arranca adentro de eso. Pasa si la
-            // nave ya quedó encimada con algo: frenar ahí dejaría la
-            // mano clavada en el hombro.
+            // fraction 0 = arranca adentro de eso. Pasa si la nave ya
+            // quedó encimada con algo: frenar ahí dejaría la mano clavada.
             if (h.fraction <= 0f || !Frena(h.collider))
             {
                 continue;
             }
-            mejor = Mathf.Min(mejor, h.distance);
+            if (h.distance < mejor)
+            {
+                mejor = h.distance;
+                _ultimoChoque = h.collider;
+            }
         }
-
-        if (mejor == float.MaxValue)
+        if (diagnostico && mejor != float.MaxValue)
         {
-            return hasta;
+            Debug.DrawLine(desde, desde + dir * mejor, Color.magenta);
+            Debug.Log($"[Brazo] frena contra '{_ultimoChoque.name}' " +
+                $"(padre: {(_ultimoChoque.transform.parent != null ? _ultimoChoque.transform.parent.name : "-")})",
+                _ultimoChoque);
         }
-        // la mano frena lo que sobresale la herramienta ANTES del borde,
-        // así la punta queda justo en la superficie
-        return desde + dir * Mathf.Clamp(mejor - extra - margenChoque, 0f, largo);
+        return mejor;
     }
 
     private bool Frena(Collider2D c)
     {
         Rigidbody2D rb = c.attachedRigidbody;
         if (rb != null && (rb == nave || rb == Ignorar))
+        {
+            return false;
+        }
+        // Los escombros tampoco: la aspiradora los junta justo en la
+        // punta, y si frenaran, empujarían la mano para afuera del pozo
+        // — cada frame un poquito, hasta sacarla al borde.
+        if (c.GetComponentInParent<Escombro>() != null)
         {
             return false;
         }
@@ -302,6 +387,13 @@ public class BrazoIK : MonoBehaviour
     /// </summary>
     private void ResolverIK(Vector2 origen, Vector2 objetivo)
     {
+        Pose(origen, objetivo, out Vector2 codo, out Vector2 mano);
+        CodoGlobal = codo;
+        ManoGlobal = mano;
+    }
+
+    private void Pose(Vector2 origen, Vector2 objetivo, out Vector2 codo, out Vector2 mano)
+    {
         Vector2 haciaObjetivo = objetivo - origen;
         float distancia = haciaObjetivo.magnitude;
 
@@ -310,7 +402,7 @@ public class BrazoIK : MonoBehaviour
         float d = Mathf.Clamp(distancia, alcanceMin + 0.0001f, alcanceMax - 0.0001f);
 
         Vector2 direccion = distancia > 0.0001f ? haciaObjetivo / distancia : Vector2.right;
-        Vector2 mano = origen + direccion * d;
+        mano = origen + direccion * d;
 
         float cosHombro = (largoSuperior * largoSuperior + d * d - largoInferior * largoInferior)
             / (2f * largoSuperior * d);
@@ -320,10 +412,7 @@ public class BrazoIK : MonoBehaviour
         float anguloDireccion = Mathf.Atan2(direccion.y, direccion.x);
         float anguloBrazo = anguloDireccion + ladoCodo * anguloHombro;
 
-        Vector2 codo = origen + new Vector2(Mathf.Cos(anguloBrazo), Mathf.Sin(anguloBrazo)) * largoSuperior;
-
-        CodoGlobal = codo;
-        ManoGlobal = mano;
+        codo = origen + new Vector2(Mathf.Cos(anguloBrazo), Mathf.Sin(anguloBrazo)) * largoSuperior;
     }
 
     private void ActualizarVisual()
@@ -359,7 +448,7 @@ public class BrazoIK : MonoBehaviour
             p.z = mano.position.z;
             mano.position = p;
 
-            Vector2 dir = ManoGlobal - CodoGlobal;
+            Vector2 dir = HaciaDondeMira(hombro.position, CodoGlobal, ManoGlobal);
             if (dir.sqrMagnitude > 0.000001f)
             {
                 float angulo = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;

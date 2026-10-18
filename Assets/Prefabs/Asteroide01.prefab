@@ -320,7 +320,7 @@ PolygonCollider2D:
       - {x: -0.032, y: -0.48200002}
       - {x: 0.067, y: -0.48200002}
       - {x: 0.068, y: -0.48100004}
-  m_UseDelaunayMesh: 1
+  m_UseDelaunayMesh: 0
 --- !u!114 &7718681725888858506
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -335,3 +335,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Tallable
   areaMinima: 0.0005
   grosorMinimo: 0.008
+  fraccionMinima: 0.03
+  simplificar: 0.002

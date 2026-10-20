@@ -512,7 +512,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: 6fdca2a59ebf01944b2489315db23095, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -545,8 +545,8 @@ LineRenderer:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0
-        value: 1
+        time: 0.015823364
+        value: 0.014492035
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -607,8 +607,9 @@ GameObject:
   - component: {fileID: 62757044}
   - component: {fileID: 62757046}
   - component: {fileID: 62757045}
+  - component: {fileID: 62757047}
   m_Layer: 5
-  m_Name: Cuadrado
+  m_Name: Marco
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -625,7 +626,9 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 2052923031}
+  - {fileID: 603739413}
   m_Father: {fileID: 1151441947}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -671,6 +674,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 62757043}
   m_CullTransparentMesh: 1
+--- !u!114 &62757047
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 62757043}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3312d7739989d2b4e91e6319e9a96d76, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RectMask2D
+  m_Padding: {x: 0, y: 0, z: 0, w: 0}
+  m_Softness: {x: 0, y: 0}
 --- !u!1 &68169674
 GameObject:
   m_ObjectHideFlags: 0
@@ -5964,7 +5981,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f89a63504e1aa942b0c419f03f1ef65, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bodega
-  capacidadBase: 1000
+  capacidadBase: 500
   carga: 0
   creditos: 0
   kgHielo: 0
@@ -5988,6 +6005,61 @@ MonoBehaviour:
   bodega: {fileID: 588659013}
   aplicarAFisica: 1
   framesPorTick: 10
+--- !u!1 &603739412
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 603739413}
+  - component: {fileID: 603739414}
+  m_Layer: 5
+  m_Name: Punta_Soldador
+  m_TagString: Untagged
+  m_Icon: {fileID: 4422084297763085224, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &603739413
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 603739412}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 62757044}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 105.79999}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &603739414
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 603739412}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d10f2cc2642adbd4c8653b5e8148b5a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SoldadorCorte
+  placa: {fileID: 2052923032}
+  movil: {fileID: 0}
+  radio: 19
+  velocidad: 2.5
+  botonIzquierdo: 1
+  kgPorCelda: 5
+  bodega: {fileID: 588659013}
 --- !u!1 &610616480
 GameObject:
   m_ObjectHideFlags: 0
@@ -7901,6 +7973,7 @@ GameObject:
   - component: {fileID: 1024996469}
   - component: {fileID: 1024996473}
   - component: {fileID: 1024996474}
+  - component: {fileID: 1024996475}
   m_Layer: 0
   m_Name: ModuloPeso
   m_TagString: Untagged
@@ -8086,6 +8159,96 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.25306368, y: 0.58064055}
   m_EdgeRadius: 0
+--- !u!114 &1024996475
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1024996468}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d8277b0709dd2741a1e72bdd1169b99, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MedidorPeso
+  bodega: {fileID: 588659013}
+  barra: {fileID: 1139386645}
+  vaciarSuelto: 1
+--- !u!1 &1030361776
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1030361777}
+  - component: {fileID: 1030361779}
+  - component: {fileID: 1030361778}
+  m_Layer: 5
+  m_Name: Soldador
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1030361777
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1030361776}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1151441947}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 751.1, y: 374.19998}
+  m_SizeDelta: {x: 67.1, y: 198.7}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1030361778
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1030361776}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.43768084, g: 0.754717, b: 0.35955858, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1030361779
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1030361776}
+  m_CullTransparentMesh: 1
 --- !u!1 &1138093264
 GameObject:
   m_ObjectHideFlags: 0
@@ -8240,6 +8403,11 @@ MonoBehaviour:
   colaPerno: {fileID: 1957940382}
   cuerda: {fileID: 34482508}
   anclarNave: 1
+  largoPorPaso: 0.03
+  largoMinimo: 0.05
+  largoMaximo: 1.5
+  holgura: 0.05
+  tirarDelCentro: 1
   diagnostico: 0
 --- !u!1 &1139386642
 GameObject:
@@ -8253,7 +8421,7 @@ GameObject:
   - component: {fileID: 1139386644}
   - component: {fileID: 1139386645}
   m_Layer: 0
-  m_Name: ModuloPeso_Indicador_0 (1)
+  m_Name: ModuloPeso_IndicadorRelleno
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8347,7 +8515,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BarraProgreso
   mano: {fileID: 0}
-  relleno: {fileID: 0}
+  relleno: {fileID: 1139386643}
   eje: 1
   esconderEnReposo: 0
   suavizado: 0.08
@@ -8513,6 +8681,7 @@ RectTransform:
   m_Children:
   - {fileID: 62757044}
   - {fileID: 984367650}
+  - {fileID: 1030361777}
   m_Father: {fileID: 1143188525}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -10715,7 +10884,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 50}
-  m_LocalScale: {x: 20, y: 20, z: 1}
+  m_LocalScale: {x: 35.555557, y: 35.555557, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 519420032}
@@ -11922,6 +12091,101 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2052923030
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2052923031}
+  - component: {fileID: 2052923033}
+  - component: {fileID: 2052923032}
+  - component: {fileID: 2052923034}
+  m_Layer: 5
+  m_Name: MinijuegoBase_Soldador
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2052923031
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2052923030}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 62757044}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -1.6103516, y: -2.7499847}
+  m_SizeDelta: {x: 435.7, y: 760.4}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &2052923032
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2052923030}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba05bf57708a07d4885edbb5e2d8a797, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlacaCorte
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  cols: 6
+  rows: 7
+  minCeldas: 3
+  maxCeldas: 7
+  semilla: 0
+  grosor: 2
+  bordeExterior: 1
+  trozosPorLinea: 4
+  colorCortado: {r: 1, g: 1, b: 1, a: 0.15}
+--- !u!222 &2052923033
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2052923030}
+  m_CullTransparentMesh: 1
+--- !u!114 &2052923034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2052923030}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18a9b115c87026b47ac08daa9c2fff7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlacaMovil
+  marco: {fileID: 0}
+  soldador: {fileID: 603739413}
+  camara: {fileID: 519420031}
+  sensibilidad: 1
+  comoMirar: 1
+  suavizado: 0.05
+  giroMaximo: 0
+  margen: 20
 --- !u!1 &2085691092
 GameObject:
   m_ObjectHideFlags: 0

@@ -63,6 +63,18 @@ public class BarraProgreso : MonoBehaviour
             // guardamos la escala que le pusiste en el editor para
             // escalar RELATIVO a eso, y no pisarle el grosor
             _escalaBase = relleno.localScale;
+
+            // Si quedó guardada vacía (escala 0 en el eje que crece), toda
+            // cuenta daría 0 para siempre y la barra no subiría nunca. Ahí
+            // se toma 1 como tamaño lleno.
+            if (eje == Eje.Vertical && Mathf.Approximately(_escalaBase.y, 0f))
+            {
+                _escalaBase.y = 1f;
+            }
+            else if (eje == Eje.Horizontal && Mathf.Approximately(_escalaBase.x, 0f))
+            {
+                _escalaBase.x = 1f;
+            }
         }
     }
 

@@ -57,13 +57,57 @@ public class Anclaje : Herramienta
 
     [Header("Ancla")]
     [Tooltip("Al clavarse en algo con Rigidbody2D (un asteroide, no la " +
-        "nave propia), amarra a eso con un joint rígido a quien tenga " +
-        "la herramienta: la nave si está en la mano o guardada en un " +
+        "nave propia), amarra a eso con un cable a quien tenga la " +
+        "herramienta: la nave si está en la mano o guardada en un " +
         "módulo, la herramienta misma si la soltaste al espacio. Se " +
         "suelta solo al recoger el perno.")]
     [SerializeField] private bool anclarNave = true;
 
-    private HingeJoint2D _jointAncla;
+    [Header("Cable (rueda del mouse)")]
+    [Tooltip("Cuánto se recoge o se suelta por cada paso de la rueda.")]
+    [SerializeField] private float largoPorPaso = 0.03f;
+
+    [Tooltip("Lo más corto que puede quedar el cable.")]
+    [SerializeField] private float largoMinimo = 0.05f;
+
+    [Tooltip("Lo más largo. No se estira más que esto, por más que tire.")]
+    [SerializeField] private float largoMaximo = 1.5f;
+
+    [Tooltip("Cuánto cable de más se deja al tomar la medida, para que no " +
+        "quede tenso de golpe.")]
+    [SerializeField] private float holgura = 0.05f;
+
+    [Tooltip("El cable tira del CENTRO de la nave, no de la herramienta " +
+        "(se sigue dibujando desde la herramienta). Si tirara de la " +
+        "punta del brazo, lejos del centro, cada tirón sería una palanca " +
+        "que hace girar la nave como trompo — sobre todo tirando de la " +
+        "roca con el brazo mientras el cable la sujeta.")]
+    [SerializeField] private bool tirarDelCentro = true;
+
+    // Un cable de verdad: con Max Distance Only no deja alejarse más del
+    // largo, pero si te acercás queda flojo, sin empujar
+    private DistanceJoint2D _jointAncla;
+    private float _largo;
+    private float _tope;
+
+    // Recién clavado, el cable corre libre: no frena nada. La medida se
+    // toma recién con el primer Ctrl + rueda. Si se tomara al clavarse,
+    // cualquier tirón de la roca en ese instante dejaba el cable tenso
+    // de golpe y la nave salía disparada.
+    private bool _cableLibre;
+
+    // el anclaje que tiene el cable en la mano ahora, si hay alguno
+    private static Anclaje _conRueda;
+
+    /// <summary>
+    /// ¿Hay un anclaje en la mano con el perno clavado? Ahí la rueda es
+    /// del cable, y el zoom de la cámara no tiene que usarla.
+    /// </summary>
+    public static bool RuedaOcupada =>
+        _conRueda != null && _conRueda.EnLaMano && _conRueda.Clavado && Ctrl;
+
+    // el cable se maneja con Ctrl + rueda: la rueda sola sigue siendo el zoom
+    private static bool Ctrl => Keyboard.current != null && Keyboard.current.ctrlKey.isPressed;
 
     private enum Estado { Guardado, Volando, Clavado }
     private Estado _estado = Estado.Guardado;
@@ -152,12 +196,63 @@ public class Anclaje : Herramienta
             }
         }
 
+        if (EnLaMano && _estado == Estado.Clavado && Ctrl && Mouse.current != null)
+        {
+            Enrollar(Mouse.current.scroll.ReadValue().y);
+        }
+
         // El perno NO vuelve al sacarse la herramienta de la mano: en
         // eso consiste el anclaje. Disparás, guardás la herramienta en
         // un módulo, y la nave queda amarrada a la roca con la mano
         // libre para trabajar. Para recogerlo hay que volver a
         // equiparla y hacer clic derecho.
     }
+
+    /// <summary>
+    /// Rueda para arriba recoge cable, para abajo lo suelta. En Windows un
+    /// "clic" de la rueda vale 120, en otros lados 1: se usa solo el signo,
+    /// así cada clic es un paso en cualquier mouse.
+    /// </summary>
+    private void Enrollar(float rueda)
+    {
+        if (Mathf.Abs(rueda) < 0.01f)
+        {
+            return;
+        }
+        if (_cableLibre)
+        {
+            // primera vez: el cable se traba al largo que hay ahora, más
+            // un poco. Si ya estás más lejos que el máximo, el tope es lo
+            // que hay — un cable no se acorta solo de golpe.
+            _cableLibre = false;
+            // medido desde donde se amarra de verdad (el centro, si tira
+            // del centro): si no, el cable nacería más corto o más largo
+            // que la distancia real y daría un tirón al trabarse
+            Rigidbody2D cuerpo = CuerpoAnclado();
+            Vector2 desde = cuerpo != null
+                ? (Vector2)cuerpo.transform.TransformPoint(AnclaEn(cuerpo))
+                : OrigenCable;
+            _largo = Vector2.Distance(desde, perno.position) + holgura;
+            _tope = Mathf.Max(largoMaximo, _largo);
+            Log($"cable trabado en {_largo:0.00}");
+        }
+
+        float antes = _largo;
+        _largo = Mathf.Clamp(_largo - Mathf.Sign(rueda) * largoPorPaso, largoMinimo, _tope);
+        if (_jointAncla != null)
+        {
+            _jointAncla.distance = _largo;
+        }
+        if (!Mathf.Approximately(antes, _largo))
+        {
+            Log($"cable: {_largo:0.00}");
+        }
+    }
+
+    /// <summary>De dónde sale el cable en la herramienta, en mundo.</summary>
+    private Vector2 OrigenCable => origenCuerda != null
+        ? (Vector2)origenCuerda.position
+        : (Vector2)transform.position;
 
     private void FixedUpdate()
     {
@@ -301,6 +396,9 @@ public class Anclaje : Herramienta
         _posEnClavado = _clavadoEn.InverseTransformPoint(p);
         _rotEnClavado = Quaternion.Inverse(_clavadoEn.rotation) * perno.rotation;
         _estado = Estado.Clavado;
+        _conRueda = this;
+
+        _cableLibre = true;
 
         // el golpe: le entrega a la roca el impulso que traía el perno
         if (rb != null)
@@ -340,11 +438,21 @@ public class Anclaje : Herramienta
     /// </summary>
     private void RevisarAncla()
     {
+        if (_cableLibre)
+        {
+            return;
+        }
         Rigidbody2D cuerpo = CuerpoAnclado();
         GameObject tiene = _jointAncla != null ? _jointAncla.gameObject : null;
         GameObject quiere = cuerpo != null ? cuerpo.gameObject : null;
         if (tiene == quiere)
         {
+            // el cable sale de la herramienta, que se mueve con el brazo:
+            // el punto de amarre en la nave la acompaña
+            if (_jointAncla != null && cuerpo != null)
+            {
+                _jointAncla.anchor = AnclaEn(cuerpo);
+            }
             return;
         }
 
@@ -353,13 +461,26 @@ public class Anclaje : Herramienta
         {
             return;
         }
-        // Joint rígido pivoteando en el perno — el mismo rol que
-        // PinJoint2D en la versión Godot: fija el punto en común, pero
-        // deja girar libre alrededor de él.
-        _jointAncla = cuerpo.gameObject.AddComponent<HingeJoint2D>();
+        // Un cable del punto de salida en la herramienta hasta el perno
+        // clavado. Max Distance Only: no se estira, pero se afloja.
+        _jointAncla = cuerpo.gameObject.AddComponent<DistanceJoint2D>();
         _jointAncla.connectedBody = _rbClavado;
-        _jointAncla.autoConfigureConnectedAnchor = true;
-        _jointAncla.anchor = cuerpo.transform.InverseTransformPoint(perno.position);
+        _jointAncla.autoConfigureConnectedAnchor = false;
+        _jointAncla.autoConfigureDistance = false;
+        _jointAncla.anchor = AnclaEn(cuerpo);
+        _jointAncla.connectedAnchor = _rbClavado.transform.InverseTransformPoint(perno.position);
+        _jointAncla.maxDistanceOnly = true;
+        _jointAncla.distance = _largo;
+        // la nave y la roca siguen chocando entre sí: el cable no las
+        // vuelve fantasmas
+        _jointAncla.enableCollision = true;
+    }
+
+    /// <summary>Dónde se amarra el cable en el cuerpo, en su espacio local.</summary>
+    private Vector2 AnclaEn(Rigidbody2D cuerpo)
+    {
+        Vector2 mundo = tirarDelCentro ? cuerpo.worldCenterOfMass : OrigenCable;
+        return cuerpo.transform.InverseTransformPoint(mundo);
     }
 
     private void DestruirAncla()
@@ -385,7 +506,12 @@ public class Anclaje : Herramienta
         _estado = Estado.Guardado;
         _clavadoEn = null;
         _rbClavado = null;
+        _cableLibre = false;
         DestruirAncla();
+        if (_conRueda == this)
+        {
+            _conRueda = null;
+        }
         perno.SetParent(transform, worldPositionStays: false);
         perno.localPosition = _posGuardado;
         perno.localRotation = _rotGuardado;
@@ -395,6 +521,10 @@ public class Anclaje : Herramienta
     private void OnDestroy()
     {
         DestruirAncla();
+        if (_conRueda == this)
+        {
+            _conRueda = null;
+        }
         // si la herramienta se destruye con el perno afuera, que no quede tirado
         if (perno != null && perno.parent != transform)
         {

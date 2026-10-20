@@ -156,13 +156,11 @@ public class Nave : MonoBehaviour
 
         if (Mathf.Abs(_rb.angularVelocity) > umbralGiro)
         {
-            // angularVelocity de Unity viene en GRADOS/seg, no
-            // radianes — a diferencia de Godot. Para la cuenta de
-            // torque no importa mientras seamos consistentes: lo que
-            // querés es "la fuerza que frena exactamente este resto
-            // de giro en un paso", y eso sale igual en cualquier
-            // unidad angular mientras no mezclés.
-            float t = -_rb.angularVelocity * _rb.inertia / dt;
+            // angularVelocity de Unity viene en GRADOS/seg y AddTorque
+            // trabaja en radianes: hay que convertir. Sin esto el torque
+            // pedido salía 57 veces más grande, siempre pegaba en el tope
+            // y con un tope alto se pasaba de largo y temblaba.
+            float t = -_rb.angularVelocity * Mathf.Deg2Rad * _rb.inertia / dt;
             _rb.AddTorque(Mathf.Clamp(t, -stabilizeTorque, stabilizeTorque));
         }
         else

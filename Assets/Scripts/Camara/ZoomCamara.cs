@@ -57,6 +57,13 @@ public class ZoomCamara : MonoBehaviour
             return;
         }
 
+        // con el perno clavado y el anclaje en la mano, la rueda maneja
+        // el cable: si además hiciera zoom, cada vuelta haría las dos cosas
+        if (Anclaje.RuedaOcupada)
+        {
+            return;
+        }
+
         float scroll = Mouse.current.scroll.ReadValue().y;
 
         if (_cam.orthographic)

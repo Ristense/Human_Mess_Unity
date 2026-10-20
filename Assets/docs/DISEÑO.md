@@ -90,6 +90,11 @@ Dos números distintos, que no hay que mezclar:
 Los asteroides pesan más cuanto más grandes, pero solo un 15% de lo que
 diría la física real — al 100% los grandes serían inamovibles.
 
+### Materiales (ideas)
+
+- **Placas de metal**
+- **Escombro**
+
 ## El mapa
 
 - Grilla de **3 × 3 sectores** de 150 × 50.

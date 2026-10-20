@@ -13,4 +13,7 @@ public class Escombro : MonoBehaviour
     [Tooltip("Cuántos kg suma a la bodega al tragarlo. Lo pone el " +
         "taladro al crearlo.")]
     public float kg = 1f;
+
+    [Tooltip("De qué es. Lo pone el taladro, según la roca de donde salió.")]
+    public TipoMaterial material = TipoMaterial.Roca;
 }

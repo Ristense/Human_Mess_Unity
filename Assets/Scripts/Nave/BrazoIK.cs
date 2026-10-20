@@ -80,6 +80,28 @@ public class BrazoIK : MonoBehaviour
     /// <summary>Dónde quedó el codo este frame, en coordenadas de MUNDO.</summary>
     public Vector2 CodoGlobal { get; private set; }
 
+    /// <summary>
+    /// La mano se queda donde está y deja de seguir al mouse (por ejemplo
+    /// mientras está abierta la ventana del soldador, que usa el mouse).
+    /// Queda fija respecto a la NAVE: si la nave gira o se mueve, la mano
+    /// va con ella.
+    /// </summary>
+    public bool Quieto
+    {
+        get => _quieto;
+        set
+        {
+            if (value && !_quieto && hombro != null)
+            {
+                _quietoLocal = hombro.InverseTransformPoint(ManoGlobal);
+            }
+            _quieto = value;
+        }
+    }
+
+    private bool _quieto;
+    private Vector3 _quietoLocal;
+
     private void Reset()
     {
         camara = Camera.main;
@@ -96,7 +118,8 @@ public class BrazoIK : MonoBehaviour
             camara = Camera.main;
         }
 
-        Vector2 objetivo = AimOverride ?? MousePlanoMundo();
+        Vector2 objetivo = AimOverride
+            ?? (Quieto ? (Vector2)hombro.TransformPoint(_quietoLocal) : MousePlanoMundo());
 
         // el delay va ACÁ, sobre el objetivo, no sobre la mano
         // resultante — si suavizara la mano directamente, la distancia

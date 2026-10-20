@@ -22,6 +22,9 @@ public class HUD : MonoBehaviour
     [SerializeField] private TMP_Text sectorTexto;
     [SerializeField] private TMP_Text cargaTexto;
     [SerializeField] private TMP_Text creditosTexto;
+    [SerializeField] private TMP_Text placasTexto;
+    [SerializeField] private TMP_Text hieloTexto;
+    [SerializeField] private TMP_Text restosTexto;
     [SerializeField] private TMP_Text objetosTexto;
 
     // Contar objetos del mapa con FindObjectsByType es relativamente
@@ -57,6 +60,21 @@ public class HUD : MonoBehaviour
         if (creditosTexto != null && bodega != null)
         {
             creditosTexto.text = $"Créditos: {bodega.Creditos:0}";
+        }
+
+        if (placasTexto != null && bodega != null)
+        {
+            placasTexto.text = $"Placas: {bodega.Placas}  ({bodega.KgPlacas:0} kg)";
+        }
+
+        if (hieloTexto != null && bodega != null)
+        {
+            hieloTexto.text = $"Hielo: {bodega.KgHielo:0} kg";
+        }
+
+        if (restosTexto != null && bodega != null)
+        {
+            restosTexto.text = $"Restos: {bodega.KgRestos:0} kg";
         }
 
         if (objetosTexto != null)

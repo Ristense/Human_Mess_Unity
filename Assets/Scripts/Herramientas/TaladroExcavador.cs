@@ -107,6 +107,7 @@ public class TaladroExcavador : Herramienta
     private readonly List<Rigidbody2D> _escombros = new List<Rigidbody2D>();
     private readonly HashSet<Tallable> _vistos = new HashSet<Tallable>();
     private float _kgPendiente;
+    private TipoMaterial _tipoPendiente;
     private float _acumulado;
 
     private void Update()
@@ -179,10 +180,11 @@ public class TaladroExcavador : Herramienta
             // queda marcada para destruirse
             float densidad = t.Densidad;
             Rigidbody2D cuerpo = t.Cuerpo;
+            TipoMaterial tipo = t.Tipo;
             float area = t.Tallar(Barrido(centro, dir, avance));
             if (area > 0f)
             {
-                Producir(area * densidad, centro, dir, cuerpo);
+                Producir(area * densidad, tipo, centro, dir, cuerpo);
             }
         }
     }
@@ -265,16 +267,22 @@ public class TaladroExcavador : Herramienta
     //  Escombros
     // ------------------------------------------------------------------
 
-    private void Producir(float kg, Vector2 centro, Vector2 dir, Rigidbody2D roca)
+    private void Producir(float kg, TipoMaterial tipo, Vector2 centro, Vector2 dir, Rigidbody2D roca)
     {
-        _kgPendiente += kg;
-
         if (escombroPrefab == null)
         {
-            Cargar(_kgPendiente);
-            _kgPendiente = 0f;
+            Cargar(kg, tipo);
             return;
         }
+
+        // lo pendiente de otro material se pierde al cambiar de roca: son
+        // migajas de menos de un escombro
+        if (tipo != _tipoPendiente)
+        {
+            _kgPendiente = 0f;
+            _tipoPendiente = tipo;
+        }
+        _kgPendiente += kg;
 
         Vector2 vRoca = roca != null ? roca.linearVelocity : Vector2.zero;
         while (_kgPendiente >= kgPorEscombro)
@@ -293,6 +301,7 @@ public class TaladroExcavador : Herramienta
                 e = go.AddComponent<Escombro>();
             }
             e.kg = kgPorEscombro;
+            e.material = tipo;
 
             Rigidbody2D rb = go.GetComponent<Rigidbody2D>();
             if (rb != null)
@@ -351,7 +360,8 @@ public class TaladroExcavador : Herramienta
                 if (bodega != null && !bodega.Llena)
                 {
                     Escombro e = rb.GetComponent<Escombro>();
-                    bodega.SumarCarga(e != null ? e.kg : rb.mass);
+                    bodega.SumarCarga(e != null ? e.kg : rb.mass,
+                        e != null ? e.material : TipoMaterial.Roca);
                     Destroy(rb.gameObject);
                     _escombros.RemoveAt(i);
                 }
@@ -363,12 +373,12 @@ public class TaladroExcavador : Herramienta
         }
     }
 
-    private void Cargar(float kg)
+    private void Cargar(float kg, TipoMaterial tipo)
     {
         Bodega bodega = GetComponentInParent<Bodega>();
         if (bodega != null)
         {
-            bodega.SumarCarga(kg);
+            bodega.SumarCarga(kg, tipo);
         }
     }
 

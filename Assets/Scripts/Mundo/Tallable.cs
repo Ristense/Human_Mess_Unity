@@ -48,6 +48,14 @@ public class Tallable : MonoBehaviour
         "termina con cientos de puntos: es el lag que se va juntando.")]
     [SerializeField] private float simplificar = 0.002f;
 
+    [Tooltip("De qué está hecha. Lo que saca el taladro va a la bodega " +
+        "como este material.")]
+    [SerializeField] private TipoMaterial material = TipoMaterial.Roca;
+
+    // no se llama "Material": taparía al tipo Material de Unity, que esta
+    // clase usa para la malla
+    public TipoMaterial Tipo => material;
+
     [Tooltip("Diagnóstico: dibuja en rojo, en la Scene, las piezas que " +
         "la física armó de verdad con el collider. Si no calzan con la " +
         "roca que se ve, el problema está ahí.")]

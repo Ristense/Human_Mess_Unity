@@ -3,6 +3,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 /// <summary>
 /// Una secuencia de diálogos: línea por línea, escribiéndose letra por
@@ -23,6 +24,9 @@ public class Dialogo : MonoBehaviour
         [Tooltip("Quién habla. Vacío = narrador, no se muestra nombre.")]
         public string quien;
 
+        [Tooltip("El monito de quien habla. Vacío = no se muestra imagen.")]
+        public Sprite imagen;
+
         [TextArea(2, 6)]
         public string texto;
 
@@ -35,6 +39,15 @@ public class Dialogo : MonoBehaviour
     [Header("Textos")]
     [SerializeField] private TMP_Text nombre;
     [SerializeField] private TMP_Text texto;
+
+    [Tooltip("La Image donde aparece el monito de cada línea. Va ADENTRO " +
+        "del marco: el script le cambia el sprite, así que no puede ser el " +
+        "marco mismo.")]
+    [SerializeField] private Image imagen;
+
+    [Tooltip("Opcional: el marco del retrato. Se esconde junto con el " +
+        "monito en las líneas sin imagen (el narrador).")]
+    [SerializeField] private GameObject marco;
 
     [Tooltip("Opcional: algo que aparece cuando la línea terminó de " +
         "escribirse, para avisar que se puede seguir (una flechita).")]
@@ -159,6 +172,15 @@ public class Dialogo : MonoBehaviour
         if (nombre != null)
         {
             nombre.text = linea.quien;
+        }
+        if (imagen != null)
+        {
+            imagen.sprite = linea.imagen;
+            imagen.enabled = linea.imagen != null;
+        }
+        if (marco != null)
+        {
+            marco.SetActive(linea.imagen != null);
         }
         texto.text = linea.texto;
         texto.maxVisibleCharacters = 0;

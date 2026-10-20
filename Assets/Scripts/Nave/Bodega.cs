@@ -26,6 +26,19 @@ public class Bodega : MonoBehaviour
 
     [SerializeField] private float creditos = 0f;
 
+    [Tooltip("Kg de hielo. Ya está incluido en la Carga.")]
+    [SerializeField] private float kgHielo = 0f;
+
+    [Tooltip("Kg de restos de metal. Ya está incluido en la Carga.")]
+    [SerializeField] private float kgRestos = 0f;
+
+    [Header("Placas de metal")]
+    [Tooltip("Cuántas placas llevás. Usá SumarPlaca().")]
+    [SerializeField] private int placas = 0;
+
+    [Tooltip("Cuánto pesan entre todas. Ya está incluido en la Carga.")]
+    [SerializeField] private float kgPlacas = 0f;
+
     [Tooltip("Cada cuántos frames se vuelven a buscar las expansiones. " +
         "Recorrer la jerarquía no es gratis y no cambia tan seguido.")]
     [SerializeField] private int framesPorTick = 10;
@@ -47,6 +60,18 @@ public class Bodega : MonoBehaviour
 
     public bool Llena => carga >= _capacidad;
     public float Creditos => creditos;
+
+    /// <summary>Kg de hielo. Ya está sumado en Carga.</summary>
+    public float KgHielo => kgHielo;
+
+    /// <summary>Kg de restos de metal. Ya está sumado en Carga.</summary>
+    public float KgRestos => kgRestos;
+
+    /// <summary>Cuántas placas de metal llevás.</summary>
+    public int Placas => placas;
+
+    /// <summary>Kg de las placas. Ya está sumado en Carga.</summary>
+    public float KgPlacas => kgPlacas;
 
     private void Awake()
     {
@@ -79,21 +104,48 @@ public class Bodega : MonoBehaviour
     /// Intenta cargar `kg`. Entra lo que quepa y devuelve lo que
     /// SOBRÓ — así quien taladra sabe si dejar el resto flotando.
     /// </summary>
-    public float SumarCarga(float kg)
+    public float SumarCarga(float kg, TipoMaterial tipo = TipoMaterial.Roca)
     {
         float entra = Mathf.Min(kg, Libre);
         carga += entra;
+        if (tipo == TipoMaterial.Hielo)
+        {
+            kgHielo += entra;
+        }
+        else if (tipo == TipoMaterial.Restos)
+        {
+            kgRestos += entra;
+        }
         return kg - entra;
     }
 
     /// <summary>
-    /// Vacía la bodega y la cobra. Devuelve cuántos kg se vendieron.
+    /// Guarda una placa de `kg`. Una placa no se parte: si no entra
+    /// entera, no entra, y devuelve false.
+    /// </summary>
+    public bool SumarPlaca(float kg)
+    {
+        if (kg > Libre)
+        {
+            return false;
+        }
+        placas++;
+        kgPlacas += kg;
+        carga += kg;
+        return true;
+    }
+
+    /// <summary>
+    /// Vende el material suelto (no las placas) y lo cobra. Devuelve
+    /// cuántos kg se vendieron.
     /// </summary>
     public float Vender(float precioPorKg)
     {
-        float vendido = carga;
+        float vendido = carga - kgPlacas;
         creditos += vendido * precioPorKg;
-        carga = 0f;
+        carga = kgPlacas;
+        kgHielo = 0f;
+        kgRestos = 0f;
         return vendido;
     }
 }

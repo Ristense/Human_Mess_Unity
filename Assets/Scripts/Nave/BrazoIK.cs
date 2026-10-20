@@ -377,6 +377,13 @@ public class BrazoIK : MonoBehaviour
     private bool _tieneObjetivoSuave;
 
     /// <summary>
+    /// Última dirección válida del brazo (hombro → objetivo), para
+    /// cuando el objetivo cae tan cerca del hombro que normalizar
+    /// daría un vector inestable.
+    /// </summary>
+    private Vector2 _direccionAnterior = Vector2.right;
+
+    /// <summary>
     /// Convierte la posición del mouse en pantalla a un punto en el
     /// MUNDO, sobre el plano XY en la altura Z del hombro — así la
     /// mano siempre cae justo en el plano donde vive la nave, sin
@@ -424,7 +431,24 @@ public class BrazoIK : MonoBehaviour
         float alcanceMin = Mathf.Abs(largoSuperior - largoInferior);
         float d = Mathf.Clamp(distancia, alcanceMin + 0.0001f, alcanceMax - 0.0001f);
 
-        Vector2 direccion = distancia > 0.0001f ? haciaObjetivo / distancia : Vector2.right;
+        // Cuando el objetivo cae muy cerca del hombro (cavando pegado a
+        // la nave, por ejemplo), normalizar haciaObjetivo da un vector
+        // inestable. Antes acá se forzaba Vector2.right como fallback,
+        // y el brazo pegaba un salto brusco entre la dirección real y
+        // "siempre hacia +X" cada vez que la distancia cruzaba el
+        // umbral — el teletransporte entre el borde picado y el
+        // hombro. Reusando la última dirección válida, el brazo se
+        // pliega suave hacia el hombro en vez de saltar.
+        Vector2 direccion;
+        if (distancia > 0.0001f)
+        {
+            direccion = haciaObjetivo / distancia;
+            _direccionAnterior = direccion;
+        }
+        else
+        {
+            direccion = _direccionAnterior;
+        }
         mano = origen + direccion * d;
 
         float cosHombro = (largoSuperior * largoSuperior + d * d - largoInferior * largoInferior)

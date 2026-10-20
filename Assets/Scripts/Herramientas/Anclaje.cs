@@ -40,6 +40,31 @@ public class Anclaje : Herramienta
         "que recibe la nave y el golpe que recibe la roca.")]
     [SerializeField] private float masaPerno = 2f;
 
+    [Header("Cuerda visual")]
+    [Tooltip("De dónde sale la cuerda en la herramienta. Un punto fijo " +
+        "(no viaja con el perno) — un hijo vacío puesto donde querés " +
+        "que nazca la línea.")]
+    [SerializeField] private Transform origenCuerda;
+
+    [Tooltip("La cola del perno: el extremo opuesto a la punta, donde " +
+        "se ata la cuerda. Si lo dejás vacío, usa el propio perno.")]
+    [SerializeField] private Transform colaPerno;
+
+    [Tooltip("Dibuja la cuerda entre origenCuerda y colaPerno mientras " +
+        "el perno está afuera (volando o clavado). Se apaga sola " +
+        "cuando el perno vuelve a guardarse.")]
+    [SerializeField] private LineRenderer cuerda;
+
+    [Header("Ancla")]
+    [Tooltip("Al clavarse en algo con Rigidbody2D (un asteroide, no la " +
+        "nave propia), amarra a eso con un joint rígido a quien tenga " +
+        "la herramienta: la nave si está en la mano o guardada en un " +
+        "módulo, la herramienta misma si la soltaste al espacio. Se " +
+        "suelta solo al recoger el perno.")]
+    [SerializeField] private bool anclarNave = true;
+
+    private HingeJoint2D _jointAncla;
+
     private enum Estado { Guardado, Volando, Clavado }
     private Estado _estado = Estado.Guardado;
 
@@ -76,6 +101,11 @@ public class Anclaje : Herramienta
     private Transform _clavadoEn;
     private Vector3 _posEnClavado;
     private Quaternion _rotEnClavado;
+
+    // el cuerpo físico de lo clavado, si tiene: es el otro extremo del
+    // joint, y hace falta guardarlo para poder re-atar el ancla cuando
+    // la herramienta cambia de dueño
+    private Rigidbody2D _rbClavado;
 
     private readonly RaycastHit2D[] _impactos = new RaycastHit2D[8];
 
@@ -122,12 +152,11 @@ public class Anclaje : Herramienta
             }
         }
 
-        // Si la sueltan de la mano con el perno afuera, vuelve: si no,
-        // quedaría un perno huérfano clavado en una roca.
-        if (!EnLaMano && _estado != Estado.Guardado)
-        {
-            Guardar();
-        }
+        // El perno NO vuelve al sacarse la herramienta de la mano: en
+        // eso consiste el anclaje. Disparás, guardás la herramienta en
+        // un módulo, y la nave queda amarrada a la roca con la mano
+        // libre para trabajar. Para recogerlo hay que volver a
+        // equiparla y hacer clic derecho.
     }
 
     private void FixedUpdate()
@@ -140,6 +169,8 @@ public class Anclaje : Herramienta
 
     private void LateUpdate()
     {
+        ActualizarCuerda();
+
         if (_estado != Estado.Clavado)
         {
             return;
@@ -155,6 +186,34 @@ public class Anclaje : Herramienta
         p.z = _z;
         perno.SetPositionAndRotation(p,
             _clavadoEn.rotation * _rotEnClavado);
+
+        if (anclarNave)
+        {
+            RevisarAncla();
+        }
+    }
+
+    /// <summary>
+    /// Dibuja la cuerda entre el punto fijo de la herramienta y la cola
+    /// del perno mientras está afuera. Se apaga sola con el perno
+    /// guardado — ahí no hay nada que mostrar.
+    /// </summary>
+    private void ActualizarCuerda()
+    {
+        if (cuerda == null || origenCuerda == null || perno == null)
+        {
+            return;
+        }
+        bool visible = _estado != Estado.Guardado;
+        cuerda.enabled = visible;
+        if (!visible)
+        {
+            return;
+        }
+        Vector3 cola = colaPerno != null ? colaPerno.position : perno.position;
+        cuerda.positionCount = 2;
+        cuerda.SetPosition(0, origenCuerda.position);
+        cuerda.SetPosition(1, cola);
     }
 
     private void Disparar()
@@ -237,6 +296,7 @@ public class Anclaje : Herramienta
         perno.position = p;
 
         Rigidbody2D rb = golpe.rigidbody;
+        _rbClavado = rb;
         _clavadoEn = rb != null ? rb.transform : golpe.collider.transform;
         _posEnClavado = _clavadoEn.InverseTransformPoint(p);
         _rotEnClavado = Quaternion.Inverse(_clavadoEn.rotation) * perno.rotation;
@@ -246,6 +306,68 @@ public class Anclaje : Herramienta
         if (rb != null)
         {
             rb.AddForceAtPosition(_dir * masaPerno * velocidad, golpe.point, ForceMode2D.Impulse);
+        }
+
+        // el ancla en sí la arma LateUpdate: ahí ya está la posición
+        // final del perno, y de paso es el único lugar que decide a
+        // qué cuerpo atarse, sin repetir la cuenta en dos lados
+    }
+
+    /// <summary>
+    /// Quién queda anclado: el primer cuerpo SIMULADO subiendo desde la
+    /// herramienta. Guardada en un módulo de la nave es la nave (el
+    /// cuerpo del módulo está con simulated = false, lo mueve la
+    /// jerarquía); tirada en el espacio es ella misma.
+    /// </summary>
+    private Rigidbody2D CuerpoAnclado()
+    {
+        for (Transform t = transform; t != null; t = t.parent)
+        {
+            Rigidbody2D rb = t.GetComponent<Rigidbody2D>();
+            if (rb != null && rb.simulated)
+            {
+                return rb;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// El dueño de la herramienta puede cambiar con el perno clavado
+    /// (la guardás en un módulo, te la sacás, la soltás al espacio).
+    /// El ancla tiene que amarrar a quien la tenga AHORA — si no,
+    /// seguirías anclando a la nave una herramienta que ya tiraste.
+    /// </summary>
+    private void RevisarAncla()
+    {
+        Rigidbody2D cuerpo = CuerpoAnclado();
+        GameObject tiene = _jointAncla != null ? _jointAncla.gameObject : null;
+        GameObject quiere = cuerpo != null ? cuerpo.gameObject : null;
+        if (tiene == quiere)
+        {
+            return;
+        }
+
+        DestruirAncla();
+        if (cuerpo == null || _rbClavado == null)
+        {
+            return;
+        }
+        // Joint rígido pivoteando en el perno — el mismo rol que
+        // PinJoint2D en la versión Godot: fija el punto en común, pero
+        // deja girar libre alrededor de él.
+        _jointAncla = cuerpo.gameObject.AddComponent<HingeJoint2D>();
+        _jointAncla.connectedBody = _rbClavado;
+        _jointAncla.autoConfigureConnectedAnchor = true;
+        _jointAncla.anchor = cuerpo.transform.InverseTransformPoint(perno.position);
+    }
+
+    private void DestruirAncla()
+    {
+        if (_jointAncla != null)
+        {
+            Destroy(_jointAncla);
+            _jointAncla = null;
         }
     }
 
@@ -262,6 +384,8 @@ public class Anclaje : Herramienta
         Log("vuelve");
         _estado = Estado.Guardado;
         _clavadoEn = null;
+        _rbClavado = null;
+        DestruirAncla();
         perno.SetParent(transform, worldPositionStays: false);
         perno.localPosition = _posGuardado;
         perno.localRotation = _rotGuardado;
@@ -270,6 +394,7 @@ public class Anclaje : Herramienta
 
     private void OnDestroy()
     {
+        DestruirAncla();
         // si la herramienta se destruye con el perno afuera, que no quede tirado
         if (perno != null && perno.parent != transform)
         {

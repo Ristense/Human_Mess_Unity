@@ -65,6 +65,16 @@ public class TaladroExcavador : Herramienta
         "una rozadora de verdad.")]
     [SerializeField] private float giroDiscos = 900f;
 
+    [Header("Punta (visual)")]
+    [Tooltip("Un sprite suelto que gira sobre sí mismo mientras cavás — " +
+        "el de adentro de la máscara de la punta. Va aparte de los " +
+        "discos porque ahí el sentido lo decide la posición " +
+        "izquierda/derecha, y este va al medio. Opcional.")]
+    [SerializeField] private Transform puntaGiratoria;
+
+    [Tooltip("Grados por segundo. En negativo gira para el otro lado.")]
+    [SerializeField] private float giroPunta = 360f;
+
     [Header("Escombros")]
     [Tooltip("Lo que escupe. Un prefab chiquito con Rigidbody2D. Vacío " +
         "= no escupe nada y el material va directo a la bodega.")]
@@ -119,12 +129,30 @@ public class TaladroExcavador : Herramienta
         {
             for (int i = 0; i < discos.Length; i++)
             {
-                if (discos[i] != null)
+                if (discos[i] == null)
                 {
-                    float sentido = i % 2 == 0 ? 1f : -1f;
-                    discos[i].Rotate(0f, 0f, giroDiscos * sentido * Time.deltaTime);
+                    continue;
                 }
+
+                // El sentido sale de DÓNDE ESTÁ cada disco, no del orden
+                // en el array: el de la izquierda gira horario y el de la
+                // derecha antihorario, así las dos caras del frente
+                // barren hacia el centro y empujan lo picado hacia la
+                // boca de la aspiradora en vez de escupirlo al costado.
+                //
+                // Antes esto salía de i % 2, y bastaba arrastrarlos en el
+                // orden equivocado para que giraran al revés. Midiendo la
+                // posición en el espacio LOCAL de la herramienta queda
+                // bien siempre, y acompaña por mucho que la gires.
+                float lado = transform.InverseTransformPoint(discos[i].position).x;
+                float sentido = lado < 0f ? -1f : 1f;
+                discos[i].Rotate(0f, 0f, giroDiscos * sentido * Time.deltaTime);
             }
+        }
+
+        if (Taladrando && puntaGiratoria != null)
+        {
+            puntaGiratoria.Rotate(0f, 0f, giroPunta * Time.deltaTime);
         }
     }
 

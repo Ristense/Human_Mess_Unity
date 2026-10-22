@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 103895ae3626e654196bae501c67aa9b
+guid: fd00ad023833c0ec2a5cab612f59214f
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -5502201829466863848
-    second: Panel_Minijuego_0
+      213: -3400387023512958884
+    second: Sierra2_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -102,13 +102,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Panel_Minijuego_0
+      name: Sierra2_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 1577
-        height: 3048
+        width: 170
+        height: 170
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -117,8 +117,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8178f18869044a3b0800000000000000
-      internalID: -5502201829466863848
+      spriteID: c5889a4a4066fc0d0800000000000000
+      internalID: -3400387023512958884
       vertices: []
       indices: 
       edges: []
@@ -137,7 +137,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Panel_Minijuego_0: -5502201829466863848
+      Sierra2_0: -3400387023512958884
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

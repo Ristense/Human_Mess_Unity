@@ -83,6 +83,30 @@ public class TaladroExcavador : Herramienta
     [Tooltip("Cada cuántos kg sale un escombro.")]
     [SerializeField] private float kgPorEscombro = 1f;
 
+    [Tooltip("Tamaño del escombro al nacer. El prefab viene al tamaño " +
+        "del dibujo original, que para la escala de este juego es " +
+        "enorme — una unidad es media nave.")]
+    [Min(0.001f)]
+    [SerializeField] private float escalaEscombro = 0.05f;
+
+    [Tooltip("Cuánto varía el tamaño de uno a otro, como fracción. " +
+        "0 = todos idénticos, que se nota y queda feo. 0.25 = entre " +
+        "el 75% y el 125%.")]
+    [Range(0f, 0.9f)]
+    [SerializeField] private float variacionEscala = 0.25f;
+
+    [Tooltip("Polvo y chispas del corte. Va ADEMÁS de los escombros, " +
+        "no en vez de: los escombros siguen siendo los que se aspiran " +
+        "y pesan. Esto es solo el adorno.\n\n" +
+        "Vacío = no sale nada y todo lo demás funciona igual.")]
+    [SerializeField] private ParticleSystem particulasCorte;
+
+    [Tooltip("Cuántas partículas por escombro producido. Si el " +
+        "ParticleSystem ya tiene su propia emisión por tiempo, dejalo " +
+        "bajo o en 0 para no duplicar.")]
+    [Min(0)]
+    [SerializeField] private int particulasPorEscombro = 6;
+
     [Tooltip("Con qué velocidad salen despedidos, hacia afuera de la roca.")]
     [SerializeField] private float velocidadEscupida = 0.3f;
 
@@ -297,8 +321,14 @@ public class TaladroExcavador : Herramienta
 
     private void Producir(float kg, TipoMaterial tipo, Vector2 centro, Vector2 dir, Rigidbody2D roca)
     {
+        Vector2 frente = centro + dir * (radioDisco + alcanceCorte * 0.5f);
+
         if (escombroPrefab == null)
         {
+            // Sin prefab el material va directo a la bodega, pero el
+            // corte igual tiene que verse: si no, cortar una roca no
+            // produciría ningún efecto en pantalla.
+            Chispear(frente, -dir, Vector2.zero, particulasPorEscombro);
             Cargar(kg, tipo);
             return;
         }
@@ -323,6 +353,13 @@ public class TaladroExcavador : Herramienta
                 + new Vector2(-dir.y, dir.x) * Random.Range(-separacion, separacion) * 0.5f;
             GameObject go = Instantiate(escombroPrefab, pos, Quaternion.identity);
 
+            // La escala se pone acá y no en el prefab para poder
+            // variarla por escombro: si todos salieran del mismo
+            // tamaño exacto, un chorro de piedritas idénticas se lee
+            // como repetición y no como escombros.
+            float s = escalaEscombro * (1f + Random.Range(-variacionEscala, variacionEscala));
+            go.transform.localScale = new Vector3(s, s, 1f);
+
             Escombro e = go.GetComponent<Escombro>();
             if (e == null)
             {
@@ -331,14 +368,65 @@ public class TaladroExcavador : Herramienta
             e.kg = kgPorEscombro;
             e.material = tipo;
 
+            // El abanico se calcula una vez y lo comparten el escombro
+            // y sus chispas: así el polvo sale para el mismo lado que
+            // la piedra y se lee como un solo impacto, no como dos
+            // efectos sueltos que casualmente pasan juntos.
+            float giro = Random.Range(-60f, 60f);
+            Vector2 salida = Quaternion.Euler(0f, 0f, giro) * -dir;
+
             Rigidbody2D rb = go.GetComponent<Rigidbody2D>();
             if (rb != null)
             {
-                float giro = Random.Range(-60f, 60f);
-                Vector2 salida = Quaternion.Euler(0f, 0f, giro) * -dir;
                 rb.linearVelocity = vRoca + salida * velocidadEscupida;
                 _escombros.Add(rb);
             }
+
+            Chispear(pos, salida, vRoca, particulasPorEscombro);
+        }
+    }
+
+    /// <summary>
+    /// Tira unas partículas en el punto de corte, saliendo hacia
+    /// <paramref name="dirSalida"/>.
+    ///
+    /// Se emiten a mano con EmitParams en vez de dejar que el
+    /// ParticleSystem emita solo, porque la posición y la velocidad
+    /// las sabe el taladro: dónde está el frente de corte y para qué
+    /// lado escupe. Un emisor configurado en el editor no tiene forma
+    /// de saber eso.
+    ///
+    /// Se respeta el espacio de simulación del sistema: si está en
+    /// Local hay que pasarle posición y velocidad en local, si no las
+    /// partículas aparecen en cualquier lado.
+    /// </summary>
+    private void Chispear(Vector2 pos, Vector2 dirSalida, Vector2 vBase, int cuantas)
+    {
+        if (particulasCorte == null || cuantas <= 0)
+        {
+            return;
+        }
+
+        bool local = particulasCorte.main.simulationSpace
+            == ParticleSystemSimulationSpace.Local;
+        Transform t = particulasCorte.transform;
+
+        for (int i = 0; i < cuantas; i++)
+        {
+            // cada chispa se abre un poco respecto de la piedra, si no
+            // salen todas en fila y parece un solo proyectil
+            float giro = Random.Range(-35f, 35f);
+            Vector2 v = vBase + (Vector2)(Quaternion.Euler(0f, 0f, giro) * dirSalida)
+                * velocidadEscupida * Random.Range(0.4f, 1.3f);
+
+            var ep = new ParticleSystem.EmitParams
+            {
+                applyShapeToPosition = false,
+                position = local ? t.InverseTransformPoint(pos) : (Vector3)pos,
+                velocity = local ? t.InverseTransformDirection(v) : (Vector3)v
+            };
+
+            particulasCorte.Emit(ep, 1);
         }
     }
 

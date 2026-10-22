@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -100,8 +101,21 @@ public class Mano : MonoBehaviour
     [SerializeField] private Key teclaEquipar = Key.E;
 
     [Tooltip("Cuántos segundos hay que mantener la tecla para que se " +
-        "complete. 0 = al toque, sin barra.")]
+        "abra la RUEDA de opciones. Soltarla antes hace directo la " +
+        "primera opción, que es lo que la mano hacía sola. 0 = la " +
+        "rueda se abre al toque y no hay atajo corto.")]
     [SerializeField] private float tiempoEquipar = 0.6f;
+
+    [Header("Rueda de opciones")]
+    [Tooltip("Cuántos píxeles hay que alejar el mouse de la mano para " +
+        "que la rueda tome una opción. Adentro de ese círculo no hay " +
+        "nada elegido, y soltar la tecla ahí cancela sin hacer nada.")]
+    [SerializeField] private float zonaMuertaRueda = 45f;
+
+    [Tooltip("La cámara con la que se pasa la mano a coordenadas de " +
+        "pantalla, para saber desde dónde se mide la dirección del " +
+        "mouse. Vacío = Camera.main.")]
+    [SerializeField] private Camera camara;
 
     [Header("Montaje")]
     [Tooltip("Al soltar un Modulo, si hay una celda libre que lo " +
@@ -147,6 +161,32 @@ public class Mano : MonoBehaviour
             return Mathf.Clamp01(_cargaTecla / tiempoEquipar);
         }
     }
+
+    /// <summary>¿Está abierta la rueda de opciones? Para la UI.</summary>
+    public bool RuedaAbierta { get; private set; }
+
+    /// <summary>
+    /// Lo que ofrece la rueda ahora mismo. Se arma al abrirla y NO se
+    /// rearma mientras está abierta: si las opciones cambiaran de orden
+    /// bajo el mouse, terminarías eligiendo una cosa distinta de la que
+    /// estabas mirando.
+    /// </summary>
+    public IReadOnlyList<AccionMano> Opciones => _opciones;
+
+    /// <summary>Qué opción estás apuntando, o -1 si estás en la zona muerta.</summary>
+    public int Seleccion { get; private set; } = -1;
+
+    /// <summary>Dónde cae la mano en la pantalla, en píxeles. El centro de la rueda.</summary>
+    public Vector2 CentroRueda { get; private set; }
+
+    private readonly List<AccionMano> _opciones = new List<AccionMano>();
+
+    // Hacia dónde apuntaba el mouse cuando se abrió la rueda. Mientras
+    // elegís, el resorte del agarre tira hacia ACÁ y no hacia el mouse:
+    // si no, mover el mouse para elegir te arrastraría la pieza por
+    // media pantalla.
+    private Vector2 _intencionCongelada;
+    private bool _aimCongelado;
 
     private Vector2 _anclaLocal;
     private DistanceJoint2D _limite;
@@ -298,15 +338,36 @@ public class Mano : MonoBehaviour
     }
 
     /// <summary>
-    /// E no actúa al toque: hay que sostenerla. Mientras se sostiene
-    /// se acumula tiempo, y al llenarse se hace la acción que
-    /// corresponda — equipar si tenés algo en la mano, desequipar si
-    /// la tenés vacía.
+    /// La tecla tiene dos gestos en vez de uno:
+    ///
+    ///   - TOQUE corto: hace al toque la primera opción, que es
+    ///     exactamente lo que la mano venía haciendo sola. El que ya
+    ///     tenía el gesto en los dedos no nota ningún cambio.
+    ///   - MANTENER: a los tiempoEquipar segundos abre la rueda,
+    ///     elegís moviendo el mouse, y al soltar se hace eso.
+    ///
+    /// Esto es lo que saca el doble apretón. Antes, con una herramienta
+    /// agarrada, equipar y guardar eran la misma tecla dos veces
+    /// seguidas: la mano elegía sola y siempre probaba equipar primero,
+    /// así que para guardar había que equipar de puro trámite. Ahora
+    /// las dos están en la rueda y elegís cuál.
     /// </summary>
     private void CargarTecla()
     {
         if (!QuiereEquipar())
         {
+            // Soltaste. Si la rueda alcanzó a abrirse, se hace lo
+            // elegido; si no, fue un toque corto y va la primera.
+            if (RuedaAbierta)
+            {
+                CerrarRueda(true);
+            }
+            else if (!_esperaSoltar && _cargaTecla > 0f)
+            {
+                ConstruirOpciones();
+                EjecutarIndice(0);
+            }
+
             _cargaTecla = 0f;
             _esperaSoltar = false;
             return;
@@ -315,39 +376,227 @@ public class Mano : MonoBehaviour
         // Ya se completó una acción y seguís sin soltar la tecla: no
         // encadenamos otra. Sin esto equipás, y como la mano pasa a
         // estar vacía con algo puesto, arranca sola a desequipar.
-        if (_esperaSoltar || !HayAccionDeTecla())
+        if (_esperaSoltar)
+        {
+            return;
+        }
+
+        if (RuedaAbierta)
+        {
+            ActualizarSeleccion();
+            return;
+        }
+
+        if (!HayAccionDeTecla())
         {
             _cargaTecla = 0f;
             return;
         }
 
         _cargaTecla += Time.deltaTime;
-        if (_cargaTecla < tiempoEquipar)
+        if (tiempoEquipar > 0f && _cargaTecla < tiempoEquipar)
         {
             return;
         }
 
-        if (Agarrado != null)
+        AbrirRueda();
+    }
+
+    /// <summary>
+    /// Arma la lista y abre la rueda. Si no hay nada que ofrecer no se
+    /// abre: una rueda vacía es peor que nada, parece que se colgó.
+    /// </summary>
+    private void AbrirRueda()
+    {
+        ConstruirOpciones();
+        if (_opciones.Count == 0)
         {
-            // Primero la mano, y si no entra ahí, el socket más
-            // cercano. Así una herramienta se te calza y un módulo
-            // —que en la mano no entra— se ancla en la nave, con el
-            // mismo gesto.
-            if (!Equipar() && !MontarCerca())
-            {
-                Debug.LogWarning("[Mano] " + Agarrado.name + " no entra " +
-                    "ni en la mano ni en ningún socket cerca. Revisá el " +
-                    "Tipo de la pieza contra el Acepta de las zonas, que " +
-                    "no estén llenas, y el Radio Montaje.", Agarrado);
-            }
-        }
-        else
-        {
-            Desequipar();
+            _cargaTecla = 0f;
+            return;
         }
 
+        // El aro de progreso ya cumplió su parte: de acá en adelante
+        // manda la rueda, y dejarlo lleno abajo solo ensucia.
         _cargaTecla = 0f;
+        RuedaAbierta = true;
+        Seleccion = -1;
+
+        if (brazo != null)
+        {
+            _intencionCongelada = brazo.Intencion;
+
+            // Con algo agarrado, el brazo ya va clavado al punto de
+            // agarre: eso lo hace FixedUpdate solo, y alcanza con
+            // congelar la intención de arriba. Con la mano vacía, en
+            // cambio, el brazo sigue al mouse y hay que pararlo, si no
+            // se te va de paseo mientras elegís.
+            if (Agarrado == null)
+            {
+                brazo.AimOverride = brazo.ManoGlobal;
+                _aimCongelado = true;
+            }
+        }
+
+        ActualizarSeleccion();
+    }
+
+    /// <summary>
+    /// Cierra la rueda y, si corresponde, hace lo elegido. Con la
+    /// selección en -1 (mouse en el centro) no se hace nada: esa es la
+    /// forma de arrepentirse sin soltar lo que tenés.
+    /// </summary>
+    private void CerrarRueda(bool ejecutar)
+    {
+        if (ejecutar && Seleccion >= 0)
+        {
+            EjecutarIndice(Seleccion);
+        }
+
+        RuedaAbierta = false;
+        Seleccion = -1;
+
+        if (_aimCongelado)
+        {
+            // Solo se devuelve si lo congelamos NOSOTROS y la mano
+            // sigue vacía. Si en el medio se agarró algo, el
+            // AimOverride pasó a ser del agarre y ponerlo en null acá
+            // le despegaría la mano de la pieza por un frame.
+            if (brazo != null && Agarrado == null)
+            {
+                brazo.AimOverride = null;
+            }
+            _aimCongelado = false;
+        }
+    }
+
+    /// <summary>
+    /// Qué opción estás apuntando. El centro se recalcula todos los
+    /// frames en vez de fijarlo al abrir: la nave se mueve, y si el
+    /// centro quedara clavado en pantalla la rueda se despegaría de la
+    /// mano y estarías eligiendo contra una referencia que ya no está.
+    /// </summary>
+    private void ActualizarSeleccion()
+    {
+        Camera cam = camara != null ? camara : Camera.main;
+        Vector2 manoMundo = brazo != null ? brazo.ManoGlobal : (Vector2)transform.position;
+
+        CentroRueda = cam != null
+            ? (Vector2)cam.WorldToScreenPoint(manoMundo)
+            : new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+
+        Vector2 mouse = Mouse.current != null
+            ? Mouse.current.position.ReadValue()
+            : CentroRueda;
+
+        Vector2 dir = mouse - CentroRueda;
+        Seleccion = dir.magnitude < zonaMuertaRueda
+            ? -1
+            : Rueda.IndiceDesde(dir, _opciones.Count);
+    }
+
+    private void EjecutarIndice(int i)
+    {
+        if (i < 0 || i >= _opciones.Count)
+        {
+            return;
+        }
+
+        _opciones[i].hacer?.Invoke();
         _esperaSoltar = true;
+    }
+
+    /// <summary>
+    /// Qué puede hacer la tecla ahora mismo. El orden no es decorativo:
+    /// la primera es la que sale con el toque corto, y se deja adelante
+    /// a propósito la que la mano hacía sola antes de que existiera la
+    /// rueda, para no romperle el gesto a nadie.
+    /// </summary>
+    private void ConstruirOpciones()
+    {
+        _opciones.Clear();
+
+        if (Agarrado != null)
+        {
+            Modulo pieza = Agarrado.GetComponent<Modulo>();
+            if (pieza == null)
+            {
+                // Sin componente Modulo no entra en ningún lado, pero
+                // soltarlo siempre se puede. El warning de por qué no
+                // entra ya lo tira Equipar().
+                _opciones.Add(new AccionMano("Soltar", "", Soltar));
+                return;
+            }
+
+            if (socketMano != null && socketMano.Cabe(pieza, 0, 0))
+            {
+                _opciones.Add(new AccionMano("Equipar", "a la mano", () => Equipar()));
+            }
+
+            if (Zona.MejorCelda(pieza, Agarrado.position, radioMontaje,
+                    out Zona zona, out int cx, out int cy)
+                && zona != socketMano)
+            {
+                // Se guarda la celda resuelta ACÁ en vez de volver a
+                // buscarla al ejecutar. Si se volviera a buscar, la
+                // mejor celda podría terminar siendo la de la mano y
+                // "Guardar" te equiparía la pieza: justo lo contrario
+                // de lo que elegiste.
+                Zona destino = zona;
+                int dx = cx;
+                int dy = cy;
+                _opciones.Add(new AccionMano("Guardar", destino.name,
+                    () => MontarEn(destino, dx, dy)));
+            }
+
+            _opciones.Add(new AccionMano("Soltar", "", Soltar));
+            return;
+        }
+
+        if (TieneEquipado)
+        {
+            Modulo puesta = socketMano.Montado();
+            bool hayDonde = puesta != null
+                && Zona.MejorCelda(puesta, puesta.transform.position, radioMontaje,
+                    out Zona z, out _, out _)
+                && z != socketMano;
+
+            if (hayDonde)
+            {
+                _opciones.Add(new AccionMano("Guardar", "en la nave",
+                    () => Desequipar(true)));
+            }
+
+            _opciones.Add(new AccionMano("Soltar", "queda flotando",
+                () => Desequipar(false)));
+        }
+    }
+
+    /// <summary>
+    /// Monta lo agarrado en una celda que ya se eligió, sin volver a
+    /// buscar cuál es la mejor.
+    /// </summary>
+    private void MontarEn(Zona zona, int cx, int cy)
+    {
+        if (Agarrado == null || zona == null)
+        {
+            return;
+        }
+
+        Modulo pieza = Agarrado.GetComponent<Modulo>();
+        if (pieza == null || !zona.Cabe(pieza, cx, cy))
+        {
+            // Se eligió hace medio segundo; si justo en el medio dejó
+            // de entrar, mejor caer al camino de siempre que no hacer
+            // nada y que parezca que la tecla no respondió.
+            MontarCerca();
+            return;
+        }
+
+        Enchufar(zona, pieza, cx, cy);
+        if (diagnostico)
+        {
+            Debug.Log("[Mano] guardo " + pieza.name + " en " + zona.name, zona);
+        }
     }
 
     /// <summary>¿La tecla tiene algo que hacer ahora mismo?</summary>
@@ -364,10 +613,14 @@ public class Mano : MonoBehaviour
     }
 
     /// <summary>
-    /// Saca lo que tengas equipado. Si justo hay un socket cerca donde
-    /// guardarlo, lo deja ahí; si no, queda flotando donde estaba.
+    /// Saca lo que tengas equipado.
+    ///
+    /// Con <paramref name="guardar"/> en true busca un socket cerca y
+    /// lo deja ahí si lo encuentra; en false lo suelta siempre, aunque
+    /// haya dónde guardarlo. Esa es la diferencia entre las dos
+    /// opciones que ofrece la rueda con algo puesto.
     /// </summary>
-    private void Desequipar()
+    private void Desequipar(bool guardar = true)
     {
         if (socketMano == null)
         {
@@ -382,10 +635,16 @@ public class Mano : MonoBehaviour
 
         socketMano.Sacar();
 
-        bool guardada = Zona.MejorCelda(pieza, pieza.transform.position,
-                            radioMontaje, out Zona zona, out int cx, out int cy)
-                        && zona != socketMano
-                        && zona.Montar(pieza, cx, cy);
+        Zona zona = null;
+        bool guardada = false;
+        if (guardar
+            && Zona.MejorCelda(pieza, pieza.transform.position, radioMontaje,
+                out Zona candidata, out int cx, out int cy)
+            && candidata != socketMano)
+        {
+            zona = candidata;
+            guardada = candidata.Montar(pieza, cx, cy);
+        }
 
         if (diagnostico)
         {
@@ -527,7 +786,11 @@ public class Mano : MonoBehaviour
         // mouse a la otra punta de la pantalla tiraba con fuerza máxima.
         Vector2 hombro = brazo.Hombro;
         float alcance = brazo.AlcanceMax;
-        Vector2 intencion = brazo.Intencion;
+        // Mientras la rueda está abierta el resorte tira hacia donde
+        // estaba el mouse al abrirla, no hacia donde está ahora: si
+        // siguiera al mouse de verdad, moverlo para elegir te
+        // arrastraría la pieza por media pantalla.
+        Vector2 intencion = RuedaAbierta ? _intencionCongelada : brazo.Intencion;
         Vector2 desdeHombro = intencion - hombro;
         if (desdeHombro.magnitude > alcance)
         {

@@ -57,3 +57,10 @@ Assets/Planeta_Difusse8k.png.meta
 
 # Copias de respaldo automaticas de Inkscape (archivo.svg.FECHA.svg)
 *.svg.*.svg
+
+# Volcados de crash de Mono/Unity
+mono_crash.*.blob
+
+# Escenas que Unity recupera tras un cuelgue: son locales, no del proyecto
+/Assets/_Recovery/
+/Assets/_Recovery.meta

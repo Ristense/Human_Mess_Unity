@@ -124,6 +124,29 @@ public class Tallable : MonoBehaviour
 
     public Rigidbody2D Cuerpo => _rb;
 
+    /// <summary>
+    /// Cuántos vértices tiene la forma ahora, sumando todos sus
+    /// contornos. Es de diagnóstico: cada mordisco agrega puntos, y si
+    /// este número no para de subir, el simplificado no está dando
+    /// abasto y cada corte sale más caro que el anterior.
+    /// </summary>
+    public int Vertices
+    {
+        get
+        {
+            if (_forma == null)
+            {
+                return 0;
+            }
+            int n = 0;
+            foreach (PathD p in _forma)
+            {
+                n += p.Count;
+            }
+            return n;
+        }
+    }
+
     /// <summary>kg por unidad² de mundo.</summary>
     public float Densidad
     {

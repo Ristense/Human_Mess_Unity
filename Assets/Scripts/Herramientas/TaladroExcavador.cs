@@ -110,6 +110,28 @@ public class TaladroExcavador : Herramienta
     [Tooltip("Con qué velocidad salen despedidos, hacia afuera de la roca.")]
     [SerializeField] private float velocidadEscupida = 0.3f;
 
+    [Tooltip("Tope de escombros que pueden nacer de UN mordisco. Lo que " +
+        "pase de ahí va directo a la bodega, sin objeto físico.\n\n" +
+        "Es una red de seguridad, no un ajuste estético: los escombros " +
+        "salen de kg/kgPorEscombro, y kg es area x densidad. Una roca " +
+        "chica y pesada tiene densidad altísima, así que un solo " +
+        "mordisco podía instanciar cientos de GameObjects en un frame " +
+        "y voltear el editor por falta de memoria.")]
+    [Min(1)]
+    [SerializeField] private int maxEscombrosPorMordisco = 12;
+
+    [Header("Color de las chispas segun el material")]
+    [Tooltip("Cada chispa se pinta segun de qué estés sacando material, " +
+        "así se nota a simple vista qué estás picando. Pisa el Start " +
+        "Color del ParticleSystem, que para esto da igual.")]
+    [SerializeField] private Color colorRoca = new Color(0.62f, 0.60f, 0.57f);
+
+    [Tooltip("El hielo tira a celeste.")]
+    [SerializeField] private Color colorHielo = new Color(0.64f, 0.86f, 0.95f);
+
+    [Tooltip("La chatarra saca chispa de verdad: naranja encendido.")]
+    [SerializeField] private Color colorRestos = new Color(1f, 0.45f, 0.12f);
+
     [Header("Aspiradora")]
     [Tooltip("Hasta dónde llega, desde el cabezal.")]
     [SerializeField] private float radioAspirado = 0.4f;
@@ -127,6 +149,12 @@ public class TaladroExcavador : Herramienta
     [SerializeField] private float radioTragado = 0.03f;
 
     [SerializeField] private bool mostrarGizmos = true;
+
+    [Tooltip("Escribe en la Console, en cada mordisco, cuántos objetos " +
+        "tallables toca el corte y cuántos vértices tienen entre todos. " +
+        "Si esos números suben sin parar mientras cavás, ahí está el " +
+        "cuelgue. Apagalo cuando termines: escribe mucho.")]
+    [SerializeField] private bool diagnostico;
 
     /// <summary>¿Está cavando ahora mismo?</summary>
     public bool Taladrando { get; private set; }
@@ -214,7 +242,25 @@ public class TaladroExcavador : Herramienta
         // todo lo tallable que toque el barrido entero
         _vistos.Clear();
         float radio = separacion * 0.5f + radioDisco + alcanceCorte;
-        foreach (Collider2D c in Physics2D.OverlapCircleAll(centro + dir * (alcanceCorte * 0.5f), radio))
+        Collider2D[] tocados = Physics2D.OverlapCircleAll(centro + dir * (alcanceCorte * 0.5f), radio);
+
+        if (diagnostico)
+        {
+            int vert = 0;
+            var contados = new HashSet<Tallable>();
+            foreach (Collider2D c in tocados)
+            {
+                Tallable t = c.GetComponentInParent<Tallable>();
+                if (t != null && contados.Add(t))
+                {
+                    vert += t.Vertices;
+                }
+            }
+            Debug.Log($"[Taladro] colliders={tocados.Length} tallables={contados.Count} " +
+                $"vertices={vert} escombros={_escombros.Count}");
+        }
+
+        foreach (Collider2D c in tocados)
         {
             Tallable t = c.GetComponentInParent<Tallable>();
             if (t == null || !_vistos.Add(t))
@@ -328,7 +374,7 @@ public class TaladroExcavador : Herramienta
             // Sin prefab el material va directo a la bodega, pero el
             // corte igual tiene que verse: si no, cortar una roca no
             // produciría ningún efecto en pantalla.
-            Chispear(frente, -dir, Vector2.zero, particulasPorEscombro);
+            Chispear(frente, -dir, Vector2.zero, particulasPorEscombro, tipo);
             Cargar(kg, tipo);
             return;
         }
@@ -343,9 +389,11 @@ public class TaladroExcavador : Herramienta
         _kgPendiente += kg;
 
         Vector2 vRoca = roca != null ? roca.linearVelocity : Vector2.zero;
-        while (_kgPendiente >= kgPorEscombro)
+        int nacidos = 0;
+        while (_kgPendiente >= kgPorEscombro && nacidos < maxEscombrosPorMordisco)
         {
             _kgPendiente -= kgPorEscombro;
+            nacidos++;
 
             // nace en el frente de corte y sale para afuera, hacia el
             // taladro, abierto en abanico
@@ -382,7 +430,33 @@ public class TaladroExcavador : Herramienta
                 _escombros.Add(rb);
             }
 
-            Chispear(pos, salida, vRoca, particulasPorEscombro);
+            Chispear(pos, salida, vRoca, particulasPorEscombro, tipo);
+        }
+
+        // Lo que pasó del tope no se pierde: va derecho a la bodega sin
+        // objeto físico. Si no, morder una roca muy densa te regalaría
+        // material o, peor, dejaría _kgPendiente creciendo para siempre.
+        if (_kgPendiente >= kgPorEscombro)
+        {
+            float sobra = Mathf.Floor(_kgPendiente / kgPorEscombro) * kgPorEscombro;
+            _kgPendiente -= sobra;
+            Cargar(sobra, tipo);
+        }
+    }
+
+    /// <summary>
+    /// Con qué color sale la chispa según de qué estés sacando material.
+    /// </summary>
+    private Color ColorDe(TipoMaterial tipo)
+    {
+        switch (tipo)
+        {
+            case TipoMaterial.Hielo:
+                return colorHielo;
+            case TipoMaterial.Restos:
+                return colorRestos;
+            default:
+                return colorRoca;
         }
     }
 
@@ -400,12 +474,15 @@ public class TaladroExcavador : Herramienta
     /// Local hay que pasarle posición y velocidad en local, si no las
     /// partículas aparecen en cualquier lado.
     /// </summary>
-    private void Chispear(Vector2 pos, Vector2 dirSalida, Vector2 vBase, int cuantas)
+    private void Chispear(Vector2 pos, Vector2 dirSalida, Vector2 vBase, int cuantas,
+        TipoMaterial tipo)
     {
         if (particulasCorte == null || cuantas <= 0)
         {
             return;
         }
+
+        Color color = ColorDe(tipo);
 
         bool local = particulasCorte.main.simulationSpace
             == ParticleSystemSimulationSpace.Local;
@@ -423,7 +500,8 @@ public class TaladroExcavador : Herramienta
             {
                 applyShapeToPosition = false,
                 position = local ? t.InverseTransformPoint(pos) : (Vector3)pos,
-                velocity = local ? t.InverseTransformDirection(v) : (Vector3)v
+                velocity = local ? t.InverseTransformDirection(v) : (Vector3)v,
+                startColor = color
             };
 
             particulasCorte.Emit(ep, 1);

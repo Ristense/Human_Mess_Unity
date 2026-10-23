@@ -96,17 +96,33 @@ public class TaladroExcavador : Herramienta
     [Range(0f, 0.9f)]
     [SerializeField] private float variacionEscala = 0.25f;
 
-    [Tooltip("Polvo y chispas del corte. Va ADEMÁS de los escombros, " +
-        "no en vez de: los escombros siguen siendo los que se aspiran " +
-        "y pesan. Esto es solo el adorno.\n\n" +
+    [Tooltip("Polvo y chispas del corte. Sale SOLO cuando el taladro " +
+        "arranca material: ni al prenderlo en el aire, ni al rozar una " +
+        "roca sin sacarle nada.\n\n" +
+        "Lo maneja el código entero: al arrancar se le apaga la emisión " +
+        "propia, así que el Rate over Time y los Bursts que le pongas " +
+        "no cuentan. Lo demás (color, tamaño, vida, sprite) es todo " +
+        "tuyo. Para polvo que se queda en el aire, Simulation Space en " +
+        "World; en Local te sigue al taladro.\n\n" +
+        "Podés arrastrar el prefab desde el Project o una instancia de " +
+        "la escena: si es el prefab, se instancia solo colgando de la " +
+        "punta.\n\n" +
         "Vacío = no sale nada y todo lo demás funciona igual.")]
     [SerializeField] private ParticleSystem particulasCorte;
 
-    [Tooltip("Cuántas partículas por escombro producido. Si el " +
-        "ParticleSystem ya tiene su propia emisión por tiempo, dejalo " +
-        "bajo o en 0 para no duplicar.")]
+    [Tooltip("Cuántas partículas por escombro producido.")]
     [Min(0)]
     [SerializeField] private int particulasPorEscombro = 6;
+
+    [Tooltip("La aspiradora. Corre todo el rato que el taladro esté " +
+        "prendido (clic derecho con el taladro en la mano), pique algo " +
+        "o no, y se apaga al soltar.\n\n" +
+        "Esta SÍ usa su propia emisión: configurale el Rate over Time " +
+        "como quieras, que el código solo la prende y la apaga. Al " +
+        "apagar deja terminar las partículas que ya estaban en el aire " +
+        "en vez de borrarlas de golpe.\n\n" +
+        "Igual que la de corte, sirve el prefab o una instancia.")]
+    [SerializeField] private ParticleSystem particulasAspiradora;
 
     [Tooltip("Con qué velocidad salen despedidos, hacia afuera de la roca.")]
     [SerializeField] private float velocidadEscupida = 0.3f;
@@ -171,12 +187,15 @@ public class TaladroExcavador : Herramienta
     private readonly HashSet<Tallable> _vistos = new HashSet<Tallable>();
     private float _kgPendiente;
     private TipoMaterial _tipoPendiente;
+    private bool _aspiradoraPrendida;
     private float _acumulado;
 
     private void Update()
     {
         Taladrando = EnLaMano && punta != null
             && Mouse.current != null && Mouse.current.rightButton.isPressed;
+
+        ActualizarAspiradora();
 
         if (Taladrando && discos != null)
         {
@@ -209,8 +228,14 @@ public class TaladroExcavador : Herramienta
         }
     }
 
-    private void Awake()
+    protected override void Awake()
     {
+        // OJO: sin esto el taladro no sabe que arrancó en la mano. El
+        // Awake de Herramienta es el que mira si cuelga de una Mano, y
+        // un Awake propio lo TAPA en vez de sumarse — Unity llama solo
+        // al de la clase más derivada.
+        base.Awake();
+
         // El campo acepta cualquier GameObject, y arrastrar un asteroide
         // ahí es fácil y parece funcionar: salen piedras. Lo que no se ve
         // es que salen gigantes y que cada una es una roca tallable entera.
@@ -225,6 +250,87 @@ public class TaladroExcavador : Herramienta
                 "Escombro — que es mucho más liviano que un PolygonCollider " +
                 "de ~150 puntos por cada piedrita.", this);
         }
+
+        particulasCorte = EnEscena(particulasCorte);
+        if (particulasCorte != null)
+        {
+            // El corte se emite a mano desde Chispear, así que la emisión
+            // propia del sistema se apaga: si no, tiraría partículas solo,
+            // por tiempo, estuviera picando o no. Pero el sistema tiene
+            // que seguir CORRIENDO, porque lo emitido con Emit() lo mueve
+            // la simulación; y en loop, para que no se apague solo al
+            // cumplir su Duration y deje las chispas congeladas.
+            ParticleSystem.EmissionModule em = particulasCorte.emission;
+            em.enabled = false;
+            ParticleSystem.MainModule main = particulasCorte.main;
+            main.loop = true;
+            particulasCorte.Play();
+        }
+
+        particulasAspiradora = EnEscena(particulasAspiradora);
+        if (particulasAspiradora != null)
+        {
+            // Arranca apagada aunque tenga Play On Awake: se prende recién
+            // cuando el taladro se prende.
+            particulasAspiradora.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        }
+    }
+
+    /// <summary>
+    /// Si lo que se arrastró al campo es el prefab del Project y no algo
+    /// de la escena, se instancia colgando de la punta y se usa esa copia.
+    ///
+    /// Sin esto, arrastrar el prefab directo —que es lo primero que uno
+    /// hace— deja al taladro emitiendo en un objeto que no está en
+    /// ninguna escena y no se dibuja nunca: no sale nada y no hay ningún
+    /// error que diga por qué.
+    /// </summary>
+    private ParticleSystem EnEscena(ParticleSystem ps)
+    {
+        if (ps == null || ps.gameObject.scene.IsValid())
+        {
+            return ps;
+        }
+
+        Transform padre = punta != null ? punta : transform;
+        ParticleSystem copia = Instantiate(ps, padre);
+        copia.transform.localPosition = Vector3.zero;
+        copia.transform.localRotation = Quaternion.identity;
+        return copia;
+    }
+
+    /// <summary>
+    /// Prende o apaga la aspiradora según si el taladro está prendido.
+    /// Solo actúa en el CAMBIO: llamar Play todos los frames reinicia el
+    /// sistema cada vez y nunca llega a verse nada.
+    /// </summary>
+    private void ActualizarAspiradora()
+    {
+        if (particulasAspiradora == null || Taladrando == _aspiradoraPrendida)
+        {
+            return;
+        }
+
+        _aspiradoraPrendida = Taladrando;
+        if (Taladrando)
+        {
+            particulasAspiradora.Play();
+        }
+        else
+        {
+            // StopEmitting y no Clear: lo que ya estaba en el aire termina
+            // su vida tranquilo, que se ve como la aspiradora apagándose y
+            // no como un corte en seco.
+            particulasAspiradora.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+        }
+    }
+
+    private void OnDisable()
+    {
+        // Si el taladro se apaga o se destruye prendido, que la
+        // aspiradora no quede andando sola.
+        Taladrando = false;
+        ActualizarAspiradora();
     }
 
     private void FixedUpdate()

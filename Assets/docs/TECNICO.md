@@ -42,6 +42,23 @@ de que siga al padre.
 **Yo leo la escena del disco.** Si no guardaste (`Ctrl+S`), veo la
 versión vieja.
 
+**El `Escombro Prefab` del taladro NO puede ser un asteroide.** Si tiene
+`Tallable`, cada escombro nace delante del taladro, el taladro lo muerde,
+suelta más escombros mordibles, y crece exponencial: en la pega se comió
+la memoria y colgó Windows entero; acá colgaba el editor. Pasó por
+arrastrar `Asteroide01` a ese campo — "funcionaba", solo que salían
+gigantes. Ya está blindado (el taladro se salta lo que tenga `Escombro`,
+y si el prefab trae `Tallable` se lo saca al nacer), pero el prefab bueno
+es uno propio: sprite chico, `Rigidbody2D`, `CircleCollider2D` y
+`Escombro`. Nada de `PolygonCollider2D`.
+
+**En el `Canvas_HUD` no se posiciona UI asignando píxeles a
+`position`.** Eso solo coincide en `Screen Space - Overlay`; en `Camera`
+el canvas vive en el mundo y el objeto sale volando a kilómetros, sin
+error. Para anclar UI a un punto de pantalla:
+`RectTransformUtility.ScreenPointToLocalPointInRectangle` con la cámara
+del canvas, y asignar `anchoredPosition`. Así lo hace `RuedaMano`.
+
 ## Escala
 
 Los sprites están en **PPU 1000**. La nave mide ~media unidad. Todo lo que

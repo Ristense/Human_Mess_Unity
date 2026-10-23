@@ -81,6 +81,7 @@ public class TaladroExcavador : Herramienta
     [SerializeField] private GameObject escombroPrefab;
 
     [Tooltip("Cada cuántos kg sale un escombro.")]
+    [Min(0.01f)]
     [SerializeField] private float kgPorEscombro = 1f;
 
     [Tooltip("Tamaño del escombro al nacer. El prefab viene al tamaño " +
@@ -208,6 +209,24 @@ public class TaladroExcavador : Herramienta
         }
     }
 
+    private void Awake()
+    {
+        // El campo acepta cualquier GameObject, y arrastrar un asteroide
+        // ahí es fácil y parece funcionar: salen piedras. Lo que no se ve
+        // es que salen gigantes y que cada una es una roca tallable entera.
+        // El código ya se protege, pero conviene que el error se vea acá
+        // y no recién cuando algo anda lento.
+        if (escombroPrefab != null && escombroPrefab.GetComponent<Tallable>() != null)
+        {
+            Debug.LogWarning("[Taladro] El Escombro Prefab (" + escombroPrefab.name +
+                ") tiene Tallable: es una roca, no un escombro. Se le saca " +
+                "al nacer, pero conviene armar un prefab propio — un sprite " +
+                "chico, Rigidbody2D, un CircleCollider2D y el componente " +
+                "Escombro — que es mucho más liviano que un PolygonCollider " +
+                "de ~150 puntos por cada piedrita.", this);
+        }
+    }
+
     private void FixedUpdate()
     {
         if (EnLaMano)
@@ -264,6 +283,16 @@ public class TaladroExcavador : Herramienta
         {
             Tallable t = c.GetComponentInParent<Tallable>();
             if (t == null || !_vistos.Add(t))
+            {
+                continue;
+            }
+
+            // Un escombro no se muerde NUNCA. Nacen justo en el frente de
+            // corte, delante del taladro: si fueran mordibles, cada
+            // mordisco soltaría escombros que el paso siguiente vuelve a
+            // morder, que sueltan más, y así. Crece exponencial y se come
+            // toda la memoria — en el PC de la pega llegó a colgar Windows.
+            if (t.GetComponent<Escombro>() != null)
             {
                 continue;
             }
@@ -407,6 +436,17 @@ public class TaladroExcavador : Herramienta
             // como repetición y no como escombros.
             float s = escalaEscombro * (1f + Random.Range(-variacionEscala, variacionEscala));
             go.transform.localScale = new Vector3(s, s, 1f);
+
+            // Si el prefab trae Tallable (por ejemplo, si se usó un
+            // asteroide como molde), se le saca: un escombro es una
+            // piedrita para aspirar, no una roca para seguir picando. El
+            // filtro de Morder ya impide la cadena, pero así además no
+            // carga con el costo de un cuerpo tallable que nunca va a
+            // tallarse.
+            if (go.TryGetComponent(out Tallable comoRoca))
+            {
+                Destroy(comoRoca);
+            }
 
             Escombro e = go.GetComponent<Escombro>();
             if (e == null)

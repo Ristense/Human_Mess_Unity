@@ -101,9 +101,11 @@ public class TaladroExcavador : Herramienta
         "roca sin sacarle nada.\n\n" +
         "Lo maneja el código entero: al arrancar se le apaga la emisión " +
         "propia, así que el Rate over Time y los Bursts que le pongas " +
-        "no cuentan. Lo demás (color, tamaño, vida, sprite) es todo " +
-        "tuyo. Para polvo que se queda en el aire, Simulation Space en " +
-        "World; en Local te sigue al taladro.\n\n" +
+        "no cuentan, y el Simulation Space se pone en World. Lo demás " +
+        "(color, tamaño, vida, sprite) es todo tuyo.\n\n" +
+        "OJO con el Start Size: una unidad es media nave. Algo como " +
+        "0.02 a 0.05; con el 1 o el 3 que trae por defecto cada " +
+        "partícula es más grande que la nave.\n\n" +
         "Podés arrastrar el prefab desde el Project o una instancia de " +
         "la escena: si es el prefab, se instancia solo colgando de la " +
         "punta.\n\n" +
@@ -264,6 +266,17 @@ public class TaladroExcavador : Herramienta
             em.enabled = false;
             ParticleSystem.MainModule main = particulasCorte.main;
             main.loop = true;
+
+            // Siempre en World. Las posiciones salen del frente de corte,
+            // que está en el mundo; en Local habría que pasarlas al
+            // espacio del sistema, y esa cuenta se rompe según el Scaling
+            // Mode: en Local o Shape el sistema IGNORA la escala de sus
+            // padres, pero InverseTransformPoint la cuenta igual. Colgado
+            // del taladro (escala 0.1) las chispas salían 10 veces más
+            // lejos, del otro lado de la roca. En World no hay cuenta que
+            // pueda salir mal, y además el polvo se queda en el aire en
+            // vez de arrastrarse con el taladro.
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
             particulasCorte.Play();
         }
 
@@ -569,12 +582,20 @@ public class TaladroExcavador : Herramienta
             float giro = Random.Range(-60f, 60f);
             Vector2 salida = Quaternion.Euler(0f, 0f, giro) * -dir;
 
+            // Sin Rigidbody2D la aspiradora no lo ve: solo trabaja con lo
+            // que está en _escombros, y para estar ahí hay que poder
+            // empujarlo. Antes un prefab de puro sprite nacía y se quedaba
+            // clavado en el aire para siempre. Ahora se le pone uno, sin
+            // gravedad, y ya se puede armar el escombro con un PNG y nada
+            // más.
             Rigidbody2D rb = go.GetComponent<Rigidbody2D>();
-            if (rb != null)
+            if (rb == null)
             {
-                rb.linearVelocity = vRoca + salida * velocidadEscupida;
-                _escombros.Add(rb);
+                rb = go.AddComponent<Rigidbody2D>();
+                rb.gravityScale = 0f;
             }
+            rb.linearVelocity = vRoca + salida * velocidadEscupida;
+            _escombros.Add(rb);
 
             Chispear(pos, salida, vRoca, particulasPorEscombro, tipo);
         }
@@ -616,9 +637,8 @@ public class TaladroExcavador : Herramienta
     /// lado escupe. Un emisor configurado en el editor no tiene forma
     /// de saber eso.
     ///
-    /// Se respeta el espacio de simulación del sistema: si está en
-    /// Local hay que pasarle posición y velocidad en local, si no las
-    /// partículas aparecen en cualquier lado.
+    /// Posición y velocidad van en mundo, directo: el sistema se fuerza
+    /// a World en el Awake justamente para no tener que convertirlas.
     /// </summary>
     private void Chispear(Vector2 pos, Vector2 dirSalida, Vector2 vBase, int cuantas,
         TipoMaterial tipo)
@@ -629,10 +649,6 @@ public class TaladroExcavador : Herramienta
         }
 
         Color color = ColorDe(tipo);
-
-        bool local = particulasCorte.main.simulationSpace
-            == ParticleSystemSimulationSpace.Local;
-        Transform t = particulasCorte.transform;
 
         for (int i = 0; i < cuantas; i++)
         {
@@ -645,8 +661,8 @@ public class TaladroExcavador : Herramienta
             var ep = new ParticleSystem.EmitParams
             {
                 applyShapeToPosition = false,
-                position = local ? t.InverseTransformPoint(pos) : (Vector3)pos,
-                velocity = local ? t.InverseTransformDirection(v) : (Vector3)v,
+                position = pos,
+                velocity = v,
                 startColor = color
             };
 

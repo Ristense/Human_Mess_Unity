@@ -3817,15 +3817,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1192075963847752372, guid: 6248fbed4e3378a409215caf9842e020, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 119.44489
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1192075963847752372, guid: 6248fbed4e3378a409215caf9842e020, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -107.92431
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1192075963847752372, guid: 6248fbed4e3378a409215caf9842e020, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 495.00012
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1192075963847752372, guid: 6248fbed4e3378a409215caf9842e020, type: 3}
       propertyPath: m_LocalRotation.w
@@ -4402,12 +4402,13 @@ MonoBehaviour:
   giroDiscos: 300
   puntaGiratoria: {fileID: 0}
   giroPunta: 372.5
-  escombroPrefab: {fileID: 0}
+  escombroPrefab: {fileID: 7332291506031414497, guid: 3faaedeb9e3b7d44894d625d24aa1ebc, type: 3}
   kgPorEscombro: 1
-  escalaEscombro: 0.05
+  escalaEscombro: 1
   variacionEscala: 0.25
   particulasCorte: {fileID: 600757120}
   particulasPorEscombro: 6
+  particulasAspiradora: {fileID: 0}
   velocidadEscupida: 0.3
   maxEscombrosPorMordisco: 12
   colorRoca: {r: 0.62, g: 0.6, b: 0.57, a: 1}
@@ -11474,11 +11475,11 @@ SceneRoots:
   - {fileID: 619394802}
   - {fileID: 1143188525}
   - {fileID: 588659009}
-  - {fileID: 1358631612}
   - {fileID: 3495819775534624026}
   - {fileID: 377606180}
   - {fileID: 344338975}
   - {fileID: 1897842311}
+  - {fileID: 1358631612}
   - {fileID: 1138093268}
   - {fileID: 689293688}
   - {fileID: 1821447504}

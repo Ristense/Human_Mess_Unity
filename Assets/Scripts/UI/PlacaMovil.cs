@@ -64,6 +64,14 @@ public class PlacaMovil : MonoBehaviour
     {
         get
         {
+            // Resuelto acá y no solo en Awake: los gizmos y cualquier
+            // cosa del editor leen esto SIN que haya corrido Awake, y
+            // ahí _rect todavía es null.
+            if (_rect == null)
+            {
+                _rect = GetComponent<RectTransform>();
+            }
+
             Vector3 mundo = soldador != null
                 ? soldador.position
                 : (marco != null ? marco.position : _rect.position);

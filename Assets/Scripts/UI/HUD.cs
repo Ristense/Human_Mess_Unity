@@ -17,6 +17,9 @@ public class HUD : MonoBehaviour
     [SerializeField] private Bodega bodega;
     [SerializeField] private Mapa mapa;
 
+    [Tooltip("Los tanques. Vacío = lo busca en la escena.")]
+    [SerializeField] private SoporteVital soporte;
+
     [Header("Textos")]
     [SerializeField] private TMP_Text pesoTexto;
     [SerializeField] private TMP_Text sectorTexto;
@@ -27,14 +30,42 @@ public class HUD : MonoBehaviour
     [SerializeField] private TMP_Text restosTexto;
     [SerializeField] private TMP_Text objetosTexto;
 
+    [Tooltip("Oxígeno: porcentaje y minutos de aire que quedan.")]
+    [SerializeField] private TMP_Text oxigenoTexto;
+
+    [Tooltip("Hidrógeno: porcentaje y minutos de EMPUJE CONTINUO. Son " +
+        "el peor caso, no el tiempo que va a durar de verdad: solo " +
+        "baja mientras acelerás.")]
+    [SerializeField] private TMP_Text hidrogenoTexto;
+
     // Contar objetos del mapa con FindObjectsByType es relativamente
     // caro — no hace falta hacerlo los 60 frames por segundo. Un tick
     // cada tanto alcanza y sobra para que el número no se vea atrasado.
     [SerializeField] private int framesPorTickObjetos = 15;
     private int _tick;
 
+    private void Awake()
+    {
+        if (soporte == null)
+        {
+            soporte = FindAnyObjectByType<SoporteVital>();
+        }
+    }
+
     private void Update()
     {
+        if (oxigenoTexto != null && soporte != null)
+        {
+            oxigenoTexto.text =
+                $"O₂: {soporte.Oxigeno * 100f:0}%  ({soporte.MinutosAire:0} min)";
+        }
+
+        if (hidrogenoTexto != null && soporte != null)
+        {
+            hidrogenoTexto.text =
+                $"H₂: {soporte.Hidrogeno * 100f:0}%  ({soporte.MinutosEmpuje:0.0} min de empuje)";
+        }
+
         if (pesoTexto != null && nave != null)
         {
             // nave.mass ya trae todo sumado si PesoNave lo aplica a la

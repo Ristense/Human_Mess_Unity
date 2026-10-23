@@ -44,9 +44,17 @@ public class SoldadorCorte : MonoBehaviour
     [Min(0f)]
     [SerializeField] private float bajadaCalor = 0.55f;
 
-    [Tooltip("Desde qué calor empieza a cortar.")]
+    [Tooltip("Desde qué calor queda la zona cómoda: no es que abajo no " +
+        "corte, es que corta más lento.")]
     [Range(0f, 1f)]
     [SerializeField] private float rangoMin = 0.45f;
+
+    [Tooltip("Debajo de esto la llama está apagada y no corta nada. " +
+        "Chiquito: es solo para que el corte termine en algún momento " +
+        "al soltar, en vez de arrastrarse eternamente con calor casi " +
+        "cero.")]
+    [Range(0f, 0.5f)]
+    [SerializeField] private float umbralApagado = 0.05f;
 
     [Tooltip("Hasta qué calor es un corte limpio. Pasado esto se " +
         "recalienta: sigue cortando, pero arruina la placa.")]
@@ -67,8 +75,8 @@ public class SoldadorCorte : MonoBehaviour
     [SerializeField] private Bodega bodega;
 
     /// <summary>
-    /// ¿Está quemando ahora mismo? Con el botón apretado NO alcanza:
-    /// además el calor tiene que estar en la franja.
+    /// ¿Está quemando ahora mismo? Depende del calor, no del botón:
+    /// mientras quede llama sigue cortando aunque lo hayas soltado.
     /// </summary>
     public bool Cortando { get; private set; }
 
@@ -171,11 +179,12 @@ public class SoldadorCorte : MonoBehaviour
         Calor = Mathf.Clamp01(Calor
             + (Apretado ? subidaCalor : -bajadaCalor) * Time.deltaTime);
 
-        // Recalentado SÍ corta: el castigo no es que te frene, es que
-        // arruina el metal. Así apretar a fondo sigue siendo una
-        // opción —más rápida y más torpe— y no una pared. El que tiene
-        // apuro saca placas feas; el que dosifica las saca enteras.
-        Cortando = EnRango || Recalentado;
+        // Corta el CALOR, no el clic. El clic solo bombea: una vez
+        // caliente, el metal sigue cediendo mientras soltás y paseás la
+        // placa. Antes había que sostener el botón para avanzar, y eso
+        // obligaba a seguir calentando una pieza que ya estaba al rojo
+        // — te empujaba justo al error que la barra quiere que evites.
+        Cortando = Calor > umbralApagado;
 
         if (!Cortando)
         {
@@ -183,7 +192,11 @@ public class SoldadorCorte : MonoBehaviour
             return;
         }
 
-        float cantidad = velocidad * Time.deltaTime;
+        // Más frío no es peor, es más lento: avanzar con poca llama es
+        // una decisión válida si no querés arriesgar la pieza.
+        // Recalentado SÍ corta, y rápido — el castigo no es que te
+        // frene, es que arruina el metal.
+        float cantidad = velocidad * Calor * Time.deltaTime;
         int tocados = placa.Quemar(movil.PuntoSoldador, radio, cantidad);
         EnLinea = tocados > 0;
 

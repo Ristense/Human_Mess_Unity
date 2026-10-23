@@ -39,6 +39,12 @@ public class Bodega : MonoBehaviour
     [Tooltip("Cuánto pesan entre todas. Ya está incluido en la Carga.")]
     [SerializeField] private float kgPlacas = 0f;
 
+    [Tooltip("Los tanques de H y O. El hielo que entra se electroliza " +
+        "ahí primero y solo lo que sobra se guarda como material.\n\n" +
+        "Vacío = lo busca en la nave. Si no hay ninguno, el hielo se " +
+        "guarda entero, como antes.")]
+    [SerializeField] private SoporteVital soporte;
+
     [Tooltip("Cada cuántos frames se vuelven a buscar las expansiones. " +
         "Recorrer la jerarquía no es gratis y no cambia tan seguido.")]
     [SerializeField] private int framesPorTick = 10;
@@ -75,6 +81,10 @@ public class Bodega : MonoBehaviour
 
     private void Awake()
     {
+        if (soporte == null)
+        {
+            soporte = GetComponentInParent<SoporteVital>();
+        }
         RecalcularCapacidad();
     }
 
@@ -106,6 +116,19 @@ public class Bodega : MonoBehaviour
     /// </summary>
     public float SumarCarga(float kg, TipoMaterial tipo = TipoMaterial.Roca)
     {
+        // El hielo primero va a los tanques y recién lo que sobra se
+        // guarda. Se hace acá y no en quien lo recoge para que valga
+        // igual venga del taladro, de la mano o de donde sea: nadie
+        // tiene que acordarse de llamar al soporte vital.
+        if (tipo == TipoMaterial.Hielo && soporte != null)
+        {
+            kg = soporte.SumarHielo(kg);
+            if (kg <= 0f)
+            {
+                return 0f;
+            }
+        }
+
         float entra = Mathf.Min(kg, Libre);
         carga += entra;
         if (tipo == TipoMaterial.Hielo)

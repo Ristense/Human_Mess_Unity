@@ -48,11 +48,44 @@ public class Nave : MonoBehaviour
     [Tooltip("Lo mismo pero para el giro, en grados/seg.")]
     [SerializeField] private float umbralGiro = 0.5f;
 
+    [Tooltip("Los tanques, para gastar hidrógeno al empujar. Vacío = " +
+        "lo busca en la nave. Sin soporte vital los motores andan " +
+        "gratis, como antes.")]
+    [SerializeField] private SoporteVital soporte;
+
     private Rigidbody2D _rb;
+
+    /// <summary>
+    /// Descuenta el hidrógeno de este paso de física y dice si alcanzó.
+    /// Se llama una sola vez por paso aunque empujes y estabilices a la
+    /// vez: si no, apretar W y espacio juntos gastaría el doble.
+    /// </summary>
+    private bool HayCombustible(float dt)
+    {
+        if (soporte == null)
+        {
+            return true;
+        }
+        if (_gastadoEstePaso)
+        {
+            return _alcanzoEstePaso;
+        }
+
+        _gastadoEstePaso = true;
+        _alcanzoEstePaso = soporte.GastarEmpuje(dt);
+        return _alcanzoEstePaso;
+    }
+
+    private bool _gastadoEstePaso;
+    private bool _alcanzoEstePaso;
 
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
+        if (soporte == null)
+        {
+            soporte = GetComponentInParent<SoporteVital>();
+        }
         _rb.gravityScale = 0f;
         // Sin roce: ver comentario de arriba. Si en el Inspector
         // quedaron en otro valor, esto lo fuerza a cero al arrancar.
@@ -62,6 +95,8 @@ public class Nave : MonoBehaviour
 
     private void FixedUpdate()
     {
+        _gastadoEstePaso = false;
+
         // Keyboard.current (del paquete Input System), NO la clase
         // UnityEngine.Input vieja. Este proyecto viene configurado en
         // Project Settings > Player > Active Input Handling con el
@@ -103,16 +138,15 @@ public class Nave : MonoBehaviour
         // "Adelante" es transform.up: asumimos que el arte de la nave
         // mira hacia arriba por defecto, igual que en Godot.
         Vector2 facing = transform.up;
-        if (thrust > 0f)
+        if (thrust != 0f && HayCombustible(Time.fixedDeltaTime))
         {
-            _rb.AddForce(facing * thrustForce);
-        }
-        else if (thrust < 0f)
-        {
-            _rb.AddForce(-facing * reverseForce);
+            _rb.AddForce(thrust > 0f ? facing * thrustForce : -facing * reverseForce);
         }
 
-        if (Keyboard.current.spaceKey.isPressed)
+        // El estabilizador también son los motores: frenar gasta igual
+        // que acelerar. Si no, quedarse sin hidrógeno no costaría nada
+        // mientras se pudiera frenar gratis.
+        if (Keyboard.current.spaceKey.isPressed && HayCombustible(Time.fixedDeltaTime))
         {
             Estabilizar(Time.fixedDeltaTime);
         }

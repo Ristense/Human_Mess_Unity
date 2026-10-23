@@ -112,9 +112,10 @@ public class TaladroExcavador : Herramienta
         "Vacío = no sale nada y todo lo demás funciona igual.")]
     [SerializeField] private ParticleSystem particulasCorte;
 
-    [Tooltip("Cuántas partículas por escombro producido.")]
-    [Min(0)]
-    [SerializeField] private int particulasPorEscombro = 6;
+    [Tooltip("Cuántas partículas por segundo mientras está cortando. " +
+        "Salen parejas, frame a frame, no a ráfagas con cada mordisco.")]
+    [Min(0f)]
+    [SerializeField] private float chispasPorSegundo = 60f;
 
     [Tooltip("La aspiradora. Corre todo el rato que el taladro esté " +
         "prendido (clic derecho con el taladro en la mano), pique algo " +
@@ -190,6 +191,14 @@ public class TaladroExcavador : Herramienta
     private float _kgPendiente;
     private TipoMaterial _tipoPendiente;
     private bool _aspiradoraPrendida;
+
+    // Lo que deja anotado cada mordisco que saca material, para que las
+    // chispas sepan si hay que seguir saliendo, de qué color y con qué
+    // velocidad de base. Los mordiscos son a tics; las chispas no.
+    private float _ultimoCorte = float.NegativeInfinity;
+    private TipoMaterial _materialCorte;
+    private Vector2 _vRocaCorte;
+    private float _chispasPendientes;
     private float _acumulado;
 
     private void Update()
@@ -198,6 +207,7 @@ public class TaladroExcavador : Herramienta
             && Mouse.current != null && Mouse.current.rightButton.isPressed;
 
         ActualizarAspiradora();
+        EmitirCorte();
 
         if (Taladrando && discos != null)
         {
@@ -430,6 +440,12 @@ public class TaladroExcavador : Herramienta
             float area = t.Tallar(Barrido(centro, dir, avance));
             if (area > 0f)
             {
+                // El mordisco ya no tira chispas: solo avisa que está
+                // cortando. Las tira EmitirCorte, parejo, frame a frame.
+                _ultimoCorte = Time.time;
+                _materialCorte = tipo;
+                _vRocaCorte = cuerpo != null ? cuerpo.linearVelocity : Vector2.zero;
+
                 Producir(area * densidad, tipo, centro, dir, cuerpo);
             }
         }
@@ -515,14 +531,10 @@ public class TaladroExcavador : Herramienta
 
     private void Producir(float kg, TipoMaterial tipo, Vector2 centro, Vector2 dir, Rigidbody2D roca)
     {
-        Vector2 frente = centro + dir * (radioDisco + alcanceCorte * 0.5f);
-
+        // Sin prefab el material va directo a la bodega. Las chispas
+        // salen igual: no dependen de esto sino de EmitirCorte.
         if (escombroPrefab == null)
         {
-            // Sin prefab el material va directo a la bodega, pero el
-            // corte igual tiene que verse: si no, cortar una roca no
-            // produciría ningún efecto en pantalla.
-            Chispear(frente, -dir, Vector2.zero, particulasPorEscombro, tipo);
             Cargar(kg, tipo);
             return;
         }
@@ -575,10 +587,7 @@ public class TaladroExcavador : Herramienta
             e.kg = kgPorEscombro;
             e.material = tipo;
 
-            // El abanico se calcula una vez y lo comparten el escombro
-            // y sus chispas: así el polvo sale para el mismo lado que
-            // la piedra y se lee como un solo impacto, no como dos
-            // efectos sueltos que casualmente pasan juntos.
+            // sale hacia el taladro, abierto en abanico
             float giro = Random.Range(-60f, 60f);
             Vector2 salida = Quaternion.Euler(0f, 0f, giro) * -dir;
 
@@ -596,8 +605,6 @@ public class TaladroExcavador : Herramienta
             }
             rb.linearVelocity = vRoca + salida * velocidadEscupida;
             _escombros.Add(rb);
-
-            Chispear(pos, salida, vRoca, particulasPorEscombro, tipo);
         }
 
         // Lo que pasó del tope no se pierde: va derecho a la bodega sin
@@ -628,7 +635,50 @@ public class TaladroExcavador : Herramienta
     }
 
     /// <summary>
-    /// Tira unas partículas en el punto de corte, saliendo hacia
+    /// Las chispas del corte, parejas.
+    ///
+    /// El taladro muerde a tics (cada "intervalo"), y antes las chispas
+    /// salían con cada mordisco: ráfaga, nada, ráfaga. Ahora el mordisco
+    /// solo anota que cortó, y esto emite todos los frames mientras ese
+    /// aviso esté fresco.
+    ///
+    /// El aviso se vence a los dos intervalos. Con uno solo se cortaría
+    /// justo entre mordisco y mordisco, que es lo que había que sacar;
+    /// mucho más y seguiría chispeando un rato después de dejar de sacar
+    /// material. Así se mantiene la regla: sin corte, sin chispas.
+    ///
+    /// La posición sale del taladro de AHORA, no del último mordisco:
+    /// el chorro acompaña al taladro mientras lo movés, en vez de
+    /// quedarse clavado donde fue el último tic.
+    /// </summary>
+    private void EmitirCorte()
+    {
+        float ventana = Mathf.Max(intervalo * 2f, 0.05f);
+        bool cortando = Taladrando && Time.time - _ultimoCorte <= ventana;
+        if (particulasCorte == null || !cortando)
+        {
+            _chispasPendientes = 0f;
+            return;
+        }
+
+        // Se acumula la fracción: a 60 por segundo y 144 fps toca menos
+        // de una chispa por frame, y redondeando cada frame no saldría
+        // ninguna nunca.
+        _chispasPendientes += chispasPorSegundo * Time.deltaTime;
+        int n = (int)_chispasPendientes;
+        if (n <= 0)
+        {
+            return;
+        }
+        _chispasPendientes -= n;
+
+        Vector2 dir = Direccion();
+        Vector2 frente = (Vector2)punta.position + dir * (radioDisco + alcanceCorte * 0.5f);
+        Chispear(frente, -dir, _vRocaCorte, n, _materialCorte);
+    }
+
+    /// <summary>
+    /// Tira unas partículas en el frente de corte, saliendo hacia
     /// <paramref name="dirSalida"/>.
     ///
     /// Se emiten a mano con EmitParams en vez de dejar que el
@@ -650,10 +700,16 @@ public class TaladroExcavador : Herramienta
 
         Color color = ColorDe(tipo);
 
+        // A lo ancho del frente: cortan los dos discos a la vez, y si
+        // todas salieran del mismo punto se vería un solo chorrito fino.
+        Vector2 lado = new Vector2(-dirSalida.y, dirSalida.x);
+
         for (int i = 0; i < cuantas; i++)
         {
-            // cada chispa se abre un poco respecto de la piedra, si no
-            // salen todas en fila y parece un solo proyectil
+            Vector2 p = pos + lado * Random.Range(-separacion, separacion) * 0.5f;
+
+            // cada chispa se abre un poco, si no salen todas en fila y
+            // parece un solo proyectil
             float giro = Random.Range(-35f, 35f);
             Vector2 v = vBase + (Vector2)(Quaternion.Euler(0f, 0f, giro) * dirSalida)
                 * velocidadEscupida * Random.Range(0.4f, 1.3f);
@@ -661,7 +717,7 @@ public class TaladroExcavador : Herramienta
             var ep = new ParticleSystem.EmitParams
             {
                 applyShapeToPosition = false,
-                position = pos,
+                position = p,
                 velocity = v,
                 startColor = color
             };

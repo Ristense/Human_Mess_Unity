@@ -29,10 +29,23 @@ public class SeguirJugador : MonoBehaviour
         "un teletransporte del jugador no la mande volando de un tirón.")]
     [SerializeField] private float velocidadMaxima = Mathf.Infinity;
 
+    [Tooltip("Para mirar alrededor con el mouse sin alejar la cámara. " +
+        "Vacío = lo busca en esta cámara. Sin él, la cámara sigue a la " +
+        "nave y nada más, como antes.")]
+    [SerializeField] private AsomarCamara asomar;
+
     // SmoothDamp necesita guardar la velocidad ENTRE frames para
     // calcular la curva de frenado — por eso es un campo y no una
     // variable local.
     private Vector3 _velocidad = Vector3.zero;
+
+    private void Awake()
+    {
+        if (asomar == null)
+        {
+            asomar = GetComponent<AsomarCamara>();
+        }
+    }
 
     /// <summary>
     /// Se planta encima del objetivo de una, sin suavizado. Para cuando
@@ -65,7 +78,15 @@ public class SeguirJugador : MonoBehaviour
             return;
         }
 
+        // Lo de asomarse se suma al destino y no a la posición ya
+        // calculada: así pasa por el mismo SmoothDamp que el seguimiento
+        // y los dos movimientos se mezclan en uno solo. Sumándolo
+        // después se verían como dos cámaras peleando.
         Vector3 destino = objetivo.position + offset;
+        if (asomar != null)
+        {
+            destino += (Vector3)asomar.Desplazamiento;
+        }
         transform.position = Vector3.SmoothDamp(
             transform.position, destino, ref _velocidad,
             tiempoSuavizado, velocidadMaxima, Time.deltaTime);

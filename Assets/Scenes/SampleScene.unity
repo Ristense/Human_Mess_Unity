@@ -3094,6 +3094,7 @@ GameObject:
   - component: {fileID: 519420034}
   - component: {fileID: 519420035}
   - component: {fileID: 519420036}
+  - component: {fileID: 519420037}
   m_Layer: 0
   m_Name: Base_Camara
   m_TagString: MainCamera
@@ -3261,6 +3262,25 @@ MonoBehaviour:
   offset: {x: 0, y: 0, z: -10}
   tiempoSuavizado: 0.15
   velocidadMaxima: Infinity
+  asomar: {fileID: 519420037}
+--- !u!114 &519420037
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31a4b011b9e15664da0d79c79ffcd0f2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AsomarCamara
+  zoom: {fileID: 0}
+  maximoEnPantallas: 0.5
+  zonaMuerta: 0.12
+  segundosAsomado: 5
+  suavizado: 0.6
+  noAsomarDesde: 0.6
 --- !u!1 &519993768
 GameObject:
   m_ObjectHideFlags: 0

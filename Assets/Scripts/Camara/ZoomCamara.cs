@@ -44,6 +44,29 @@ public class ZoomCamara : MonoBehaviour
     private Camera _cam;
     private float _target;
 
+    /// <summary>
+    /// Qué tan lejos está la cámara, de 0 (lo más cerca que deja) a 1
+    /// (lo más lejos). Se mide sobre el zoom PEDIDO y no sobre el real
+    /// para que quien la lea reaccione al toque y no con el retraso de
+    /// la animación.
+    ///
+    /// Sirve para apagar cosas que solo tienen sentido de cerca: con la
+    /// cámara lejos ya se ve todo y no hace falta asomarse.
+    /// </summary>
+    public float Fraccion
+    {
+        get
+        {
+            if (_cam == null)
+            {
+                return 0f;
+            }
+            return _cam.orthographic
+                ? Mathf.InverseLerp(orthoMin, orthoMax, _target)
+                : Mathf.InverseLerp(fovMin, fovMax, _target);
+        }
+    }
+
     private void Awake()
     {
         _cam = GetComponent<Camera>();

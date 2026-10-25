@@ -127,6 +127,16 @@ public class TaladroExcavador : Herramienta
         "Igual que la de corte, sirve el prefab o una instancia.")]
     [SerializeField] private ParticleSystem particulasAspiradora;
 
+    [Header("Sonido")]
+    [Tooltip("El motor: suena mientras el taladro está prendido, aunque " +
+        "gire en el aire.")]
+    [SerializeField] private SonidoContinuo sonidoMotor;
+
+    [Tooltip("El roce contra la piedra: suena SOLO mientras está sacando " +
+        "material de verdad. Opcional — sin esto el motor solo ya da el " +
+        "pego.")]
+    [SerializeField] private SonidoContinuo sonidoCorte;
+
     [Tooltip("Con qué velocidad salen despedidos, hacia afuera de la roca.")]
     [SerializeField] private float velocidadEscupida = 0.3f;
 
@@ -207,6 +217,7 @@ public class TaladroExcavador : Herramienta
             && Mouse.current != null && Mouse.current.rightButton.isPressed;
 
         ActualizarAspiradora();
+        ActualizarSonido();
         EmitirCorte();
 
         if (Taladrando && discos != null)
@@ -354,6 +365,9 @@ public class TaladroExcavador : Herramienta
         // aspiradora no quede andando sola.
         Taladrando = false;
         ActualizarAspiradora();
+        // el sonido vive en otro objeto, así que apagar este no lo
+        // apaga solo: hay que decírselo
+        ActualizarSonido();
     }
 
     private void FixedUpdate()
@@ -635,6 +649,34 @@ public class TaladroExcavador : Herramienta
     }
 
     /// <summary>
+    /// ¿Está sacando material AHORA? No es lo mismo que estar prendido:
+    /// el taladro puede girar en el aire. Es el mismo aviso fresco que
+    /// usan las chispas — el mordisco anota que cortó y esto vale hasta
+    /// dos intervalos después, lo justo para que no se corte entre un
+    /// tic y el siguiente.
+    /// </summary>
+    public bool Cortando => Taladrando
+        && Time.time - _ultimoCorte <= Mathf.Max(intervalo * 2f, 0.05f);
+
+    /// <summary>
+    /// Prende el motor con el taladro y el roce con el corte de verdad.
+    /// Los dos bucles suenan juntos: el motor de fondo todo el rato, y
+    /// encima el chirrido mientras está comiendo piedra. Así se oye la
+    /// diferencia entre girar en el aire y estar sacando material.
+    /// </summary>
+    private void ActualizarSonido()
+    {
+        if (sonidoMotor != null)
+        {
+            sonidoMotor.Activo = Taladrando;
+        }
+        if (sonidoCorte != null)
+        {
+            sonidoCorte.Activo = Cortando;
+        }
+    }
+
+    /// <summary>
     /// Las chispas del corte, parejas.
     ///
     /// El taladro muerde a tics (cada "intervalo"), y antes las chispas
@@ -653,9 +695,7 @@ public class TaladroExcavador : Herramienta
     /// </summary>
     private void EmitirCorte()
     {
-        float ventana = Mathf.Max(intervalo * 2f, 0.05f);
-        bool cortando = Taladrando && Time.time - _ultimoCorte <= ventana;
-        if (particulasCorte == null || !cortando)
+        if (particulasCorte == null || !Cortando)
         {
             _chispasPendientes = 0f;
             return;

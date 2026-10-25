@@ -106,6 +106,41 @@ public class Anclaje : Herramienta
     public static bool RuedaOcupada =>
         _conRueda != null && _conRueda.EnLaMano && _conRueda.Clavado && Ctrl;
 
+    /// <summary>
+    /// El anclaje cuyo cable estás manejando ahora mismo, o null. Es
+    /// para el cartel que muestra los metros: aparece y desaparece
+    /// exactamente cuando la rueda pasa a ser del cable.
+    /// </summary>
+    public static Anclaje ConElCable => RuedaOcupada ? _conRueda : null;
+
+    /// <summary>
+    /// Cuánto cable hay afuera, en unidades de mundo.
+    ///
+    /// Mientras corre libre (antes del primer Ctrl + rueda) todavía no
+    /// hay un largo fijo, así que devuelve la distancia real hasta el
+    /// perno: es lo que mediría el cable si lo trabaras ahora, que es
+    /// justo el número que te sirve para decidir.
+    /// </summary>
+    public float LargoCable
+    {
+        get
+        {
+            if (_estado != Estado.Clavado || perno == null)
+            {
+                return 0f;
+            }
+            if (!_cableLibre)
+            {
+                return _largo;
+            }
+            Rigidbody2D cuerpo = CuerpoAnclado();
+            Vector2 desde = cuerpo != null
+                ? (Vector2)cuerpo.transform.TransformPoint(AnclaEn(cuerpo))
+                : OrigenCable;
+            return Vector2.Distance(desde, perno.position);
+        }
+    }
+
     // el cable se maneja con Ctrl + rueda: la rueda sola sigue siendo el zoom
     private static bool Ctrl => Keyboard.current != null && Keyboard.current.ctrlKey.isPressed;
 

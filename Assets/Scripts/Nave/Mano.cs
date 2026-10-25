@@ -21,7 +21,8 @@ using UnityEngine.InputSystem;
 /// agarrado, rigidez acotada al paso de física, y recortar el resorte
 /// sin recortar el amortiguador.
 ///
-/// La tecla (E por defecto) es un mantener con tiempo de carga, y hace
+/// La tecla (R por defecto, porque E pasó a ser el giro de la nave)
+/// es un mantener con tiempo de carga, y hace
 /// lo que corresponda: equipar a la mano, anclar en un socket cercano,
 /// o sacarse lo que tengas puesto. El clic solo agarra y suelta.
 ///
@@ -33,6 +34,10 @@ public class Mano : MonoBehaviour
     [SerializeField] private BrazoIK brazo;
     [Tooltip("El Rigidbody2D de la nave — recibe la reacción de lo que agarres.")]
     [SerializeField] private Rigidbody2D nave;
+
+    [Tooltip("Los efectos de sonido. Vacío = los busca en la escena. " +
+        "Sin ninguno, la mano trabaja muda.")]
+    [SerializeField] private Sonidos sonidos;
 
     [Header("Detección")]
     [Tooltip("Si la mano no toca nada justo, agarra lo más cercano " +
@@ -98,7 +103,7 @@ public class Mano : MonoBehaviour
 
     [Tooltip("Mantenela apretada mientras hacés clic sobre una " +
         "herramienta y en vez de agarrarla, te la calzás.")]
-    [SerializeField] private Key teclaEquipar = Key.E;
+    [SerializeField] private Key teclaEquipar = Key.R;
 
     [Tooltip("Cuántos segundos hay que mantener la tecla para que se " +
         "abra la RUEDA de opciones. Soltarla antes hace directo la " +
@@ -736,6 +741,14 @@ public class Mano : MonoBehaviour
         zona.Montar(pieza, cx, cy);
         Agarrado = null;
 
+        // Acá y no en MontarEn: Enchufar es por donde pasan todos los
+        // caminos que terminan con una pieza en su lugar (la rueda, el
+        // montaje automático, guardar lo que tenías puesto).
+        if (sonidos != null)
+        {
+            sonidos.Encajar();
+        }
+
         // La pieza ahora cuelga de la nave, así que la lista de
         // colliders del casco cambió. Si la dejáramos cacheada,
         // el próximo agarre filtraría contra una lista vieja.
@@ -1026,6 +1039,18 @@ public class Mano : MonoBehaviour
         return mejor;
     }
 
+    private void Awake()
+    {
+        if (sonidos == null)
+        {
+            sonidos = GetComponentInParent<Sonidos>();
+        }
+        if (sonidos == null)
+        {
+            sonidos = FindAnyObjectByType<Sonidos>();
+        }
+    }
+
     private void Agarrar()
     {
         if (Agarrado != null)
@@ -1046,6 +1071,11 @@ public class Mano : MonoBehaviour
             montado.zonaActual.SacarA(montado);
         }
         Agarrado = rb;
+
+        if (sonidos != null)
+        {
+            sonidos.Agarrar();
+        }
 
         if (diagnostico)
         {

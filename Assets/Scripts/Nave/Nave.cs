@@ -2,8 +2,11 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// La nave, como cuerpo físico real (Rigidbody2D). El movimiento de
-/// tanque se logra aplicando fuerza y torque, no moviendo la posición
+/// La nave, como cuerpo físico real (Rigidbody2D).
+///
+/// Controles: W y S empujan adelante y atrás, A y D corren de costado,
+/// Q y E giran, Space frena. Todo se logra aplicando fuerza y torque,
+/// no moviendo la posición
 /// a mano — así "mass" es un peso de verdad: si más adelante se
 /// vuelve más pesada (cargando chatarra), le va a costar más acelerar
 /// y girar, gratis, porque lo calcula el motor de físicas.
@@ -30,6 +33,11 @@ public class Nave : MonoBehaviour
     [SerializeField] private float reverseForce = 10f;
     [SerializeField] private float turnTorque = 15f;
 
+    [Tooltip("Empuje de costado (A y D): los propulsores laterales. " +
+        "Más flojo que el principal a propósito — son chicos, están " +
+        "para acomodarse al lado de una roca, no para viajar.")]
+    [SerializeField] private float lateralForce = 8f;
+
     [Header("Estabilizador (tecla Space)")]
     [Tooltip("No es un truco que frena gratis: dispara contra-fuerza " +
         "real, en la dirección opuesta a como te estés moviendo/" +
@@ -52,6 +60,16 @@ public class Nave : MonoBehaviour
         "lo busca en la nave. Sin soporte vital los motores andan " +
         "gratis, como antes.")]
     [SerializeField] private SoporteVital soporte;
+
+    [Header("Sonido")]
+    [Tooltip("El motor principal: suena mientras empujás de verdad, o " +
+        "sea con gas en el tanque. Sin hidrógeno la nave queda muda, " +
+        "que es la mejor forma de enterarse.")]
+    [SerializeField] private SonidoContinuo sonidoMotor;
+
+    [Tooltip("Los de maniobra: girar y frenar con el estabilizador. " +
+        "Opcional — un chorrito corto, más agudo que el principal.")]
+    [SerializeField] private SonidoContinuo sonidoManiobra;
 
     private Rigidbody2D _rb;
 
@@ -109,15 +127,19 @@ public class Nave : MonoBehaviour
         // chequeo antes de leerlo.
         if (Keyboard.current == null)
         {
+            Sonar(false, false);
             return;
         }
 
+        // Q y E giran; A y D mueven de costado. Antes A y D giraban,
+        // pero para trabajar pegado a una roca lo que hace falta es
+        // correrse de lado sin dejar de apuntarle.
         float turn = 0f;
-        if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed)
+        if (Keyboard.current.qKey.isPressed || Keyboard.current.leftArrowKey.isPressed)
         {
             turn -= 1f;
         }
-        if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed)
+        if (Keyboard.current.eKey.isPressed || Keyboard.current.rightArrowKey.isPressed)
         {
             turn += 1f;
         }
@@ -138,20 +160,63 @@ public class Nave : MonoBehaviour
         // "Adelante" es transform.up: asumimos que el arte de la nave
         // mira hacia arriba por defecto, igual que en Godot.
         Vector2 facing = transform.up;
+
+        // El sonido sale de si el motor PRENDIÓ, no de si apretaste la
+        // tecla: sin hidrógeno la nave queda muda, y esa es la forma
+        // más rápida de darte cuenta de que te quedaste sin gas.
+        bool empujando = false;
         if (thrust != 0f && HayCombustible(Time.fixedDeltaTime))
         {
             _rb.AddForce(thrust > 0f ? facing * thrustForce : -facing * reverseForce);
+            empujando = true;
+        }
+
+        float lado = 0f;
+        if (Keyboard.current.aKey.isPressed)
+        {
+            lado -= 1f;
+        }
+        if (Keyboard.current.dKey.isPressed)
+        {
+            lado += 1f;
+        }
+
+        // transform.right, porque "adelante" es transform.up: el
+        // costado acompaña a la nave por mucho que la gires.
+        bool deCostado = false;
+        if (lado != 0f && HayCombustible(Time.fixedDeltaTime))
+        {
+            _rb.AddForce((Vector2)transform.right * (lado * lateralForce));
+            deCostado = true;
         }
 
         // El estabilizador también son los motores: frenar gasta igual
         // que acelerar. Si no, quedarse sin hidrógeno no costaría nada
         // mientras se pudiera frenar gratis.
+        bool frenando = false;
         if (Keyboard.current.spaceKey.isPressed && HayCombustible(Time.fixedDeltaTime))
         {
             Estabilizar(Time.fixedDeltaTime);
+            frenando = true;
         }
 
+        // Girar, frenar y correrse de lado son los mismos propulsores
+        // chicos, así que comparten sonido.
+        Sonar(empujando, turn != 0f || frenando || deCostado);
+
         ClampABounds();
+    }
+
+    private void Sonar(bool motor, bool maniobra)
+    {
+        if (sonidoMotor != null)
+        {
+            sonidoMotor.Activo = motor;
+        }
+        if (sonidoManiobra != null)
+        {
+            sonidoManiobra.Activo = maniobra;
+        }
     }
 
     /// <summary>

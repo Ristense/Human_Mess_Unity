@@ -58,6 +58,14 @@ public class Zona : MonoBehaviour
     [SerializeField] private Color luzLibre = new Color(0.47f, 0.71f, 0.54f);
     [SerializeField] private Color luzOcupada = new Color(0.85f, 0.31f, 0.25f);
 
+    [Tooltip("Una luz por celda, para zonas de varias celdas (el rack de " +
+        "herramientas). Cada una se pinta según SU celda, con los mismos " +
+        "colores de arriba.\n\n" +
+        "El orden da igual: cada luz se asigna a la celda que le queda " +
+        "más cerca. Así no hay que adivinar si la primera es la de " +
+        "arriba o la de abajo, ni se rompe si las reordenás.")]
+    [SerializeField] private Transform[] lucesPorCelda;
+
     public enum ModoLuz
     {
         /// <summary>Roja apenas montás algo. Con 1 celda da igual que la otra.</summary>
@@ -464,6 +472,8 @@ public class Zona : MonoBehaviour
     /// </summary>
     private void RefrescarLuz()
     {
+        RefrescarLucesPorCelda();
+
         if (luz == null)
         {
             return;
@@ -475,34 +485,41 @@ public class Zona : MonoBehaviour
         Pintar(luz, ocupada ? luzOcupada : luzLibre);
     }
 
-    /// <summary>
-    /// Pinta de un color todo lo pintable que cuelgue de "t", a
-    /// cualquier profundidad: los SpriteRenderer y las Light2D.
-    ///
-    /// Va recursivo porque una luz de verdad casi nunca es un solo
-    /// objeto — es el neón, más el halo, más la Light2D que ilumina
-    /// alrededor. Todos tienen que cambiar juntos o se ve mal.
-    ///
-    /// En el sprite se cambia el .color, que el shader Neon multiplica
-    /// por su color HDR: así el tinte funciona sin tocar el material
-    /// (que es compartido, y tocarlo pintaría TODOS los sockets).
-    /// </summary>
-    private static void Pintar(Transform t, Color c)
+    private void RefrescarLucesPorCelda()
     {
-        if (t.TryGetComponent(out SpriteRenderer sr))
+        if (lucesPorCelda == null || _celdas == null)
         {
-            sr.color = c;
+            return;
         }
-        if (t.TryGetComponent(out UnityEngine.Rendering.Universal.Light2D l2d))
+        foreach (Transform l in lucesPorCelda)
         {
-            l2d.color = c;
-        }
-
-        for (int i = 0; i < t.childCount; i++)
-        {
-            Pintar(t.GetChild(i), c);
+            if (l == null)
+            {
+                continue;
+            }
+            // Un módulo que tapa varias celdas queda anotado en todas,
+            // así que cada luz se prende aunque lo que la ocupe sea una
+            // pieza grande que arranca en otra celda.
+            bool ocupada = _celdas[CeldaMasCercana(l.position)] != null;
+            Pintar(l, ocupada ? luzOcupada : luzLibre);
         }
     }
+
+    /// <summary>
+    /// La celda cuyo centro queda más cerca de un punto del mundo. Es la
+    /// cuenta de BloqueCentroLocal al revés: de posición a índice.
+    /// </summary>
+    private int CeldaMasCercana(Vector3 mundo)
+    {
+        Vector2 local = transform.InverseTransformPoint(mundo);
+        int cx = Mathf.Clamp(Mathf.RoundToInt(local.x / Paso + (cols - 1) * 0.5f), 0, cols - 1);
+        int cy = Mathf.Clamp(Mathf.RoundToInt(local.y / Paso + (rows - 1) * 0.5f), 0, rows - 1);
+        return cy * cols + cx;
+    }
+
+    // el shader Neon multiplica el .color del sprite por su color HDR,
+    // así que pintar el sprite alcanza para teñir el neón
+    private static void Pintar(Transform t, Color c) => Pintura.Pintar(t, c);
 
     private void OnDrawGizmos()
     {

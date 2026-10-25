@@ -30,6 +30,9 @@ public class BarraProgreso : MonoBehaviour
     [Tooltip("El sprite que se estira.")]
     [SerializeField] private Transform relleno;
 
+    /// <summary>El sprite que se estira, para quien quiera pintarlo.</summary>
+    public Transform Relleno => relleno;
+
     [Tooltip("En qué eje crece. El PIVOT del sprite tiene que estar " +
         "del lado por donde arranca: Left para horizontal, Bottom " +
         "para vertical. Si está al centro crece para los dos lados y " +

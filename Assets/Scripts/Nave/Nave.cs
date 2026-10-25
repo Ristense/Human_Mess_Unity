@@ -4,8 +4,8 @@ using UnityEngine.InputSystem;
 /// <summary>
 /// La nave, como cuerpo físico real (Rigidbody2D).
 ///
-/// Controles: W y S empujan adelante y atrás, A y D corren de costado,
-/// Q y E giran, Space frena. Todo se logra aplicando fuerza y torque,
+/// Controles: W y S empujan adelante y atrás, Q y E corren de costado,
+/// A y D giran, Space frena. Todo se logra aplicando fuerza y torque,
 /// no moviendo la posición
 /// a mano — así "mass" es un peso de verdad: si más adelante se
 /// vuelve más pesada (cargando chatarra), le va a costar más acelerar
@@ -33,7 +33,7 @@ public class Nave : MonoBehaviour
     [SerializeField] private float reverseForce = 10f;
     [SerializeField] private float turnTorque = 15f;
 
-    [Tooltip("Empuje de costado (A y D): los propulsores laterales. " +
+    [Tooltip("Empuje de costado (Q y E): los propulsores laterales. " +
         "Más flojo que el principal a propósito — son chicos, están " +
         "para acomodarse al lado de una roca, no para viajar.")]
     [SerializeField] private float lateralForce = 8f;
@@ -131,15 +131,14 @@ public class Nave : MonoBehaviour
             return;
         }
 
-        // Q y E giran; A y D mueven de costado. Antes A y D giraban,
-        // pero para trabajar pegado a una roca lo que hace falta es
-        // correrse de lado sin dejar de apuntarle.
+        // A y D giran; Q y E mueven de costado, para correrse al lado
+        // de una roca sin dejar de apuntarle.
         float turn = 0f;
-        if (Keyboard.current.qKey.isPressed || Keyboard.current.leftArrowKey.isPressed)
+        if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed)
         {
             turn -= 1f;
         }
-        if (Keyboard.current.eKey.isPressed || Keyboard.current.rightArrowKey.isPressed)
+        if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed)
         {
             turn += 1f;
         }
@@ -172,11 +171,11 @@ public class Nave : MonoBehaviour
         }
 
         float lado = 0f;
-        if (Keyboard.current.aKey.isPressed)
+        if (Keyboard.current.qKey.isPressed)
         {
             lado -= 1f;
         }
-        if (Keyboard.current.dKey.isPressed)
+        if (Keyboard.current.eKey.isPressed)
         {
             lado += 1f;
         }

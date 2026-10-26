@@ -37,6 +37,38 @@ public class ResaltarBajoMano : MonoBehaviour
     [Range(1f, 2f)]
     [SerializeField] private float expansion = 1.3f;
 
+    [Header("Marca redonda")]
+    [Tooltip("Un PNG que se dibuja encima de lo que está bajo la mano: " +
+        "un aro, un círculo, una mira. Aparece y desaparece con el " +
+        "mismo gatillo que el contorno.\n\n" +
+        "Es para las piezas de forma rara, donde el contorno que sigue " +
+        "el dibujo queda feo. Vacío = no se dibuja nada y todo sigue " +
+        "igual que antes.")]
+    [SerializeField] private Sprite marca;
+
+    [Tooltip("Qué tan más grande que la pieza se dibuja la marca. 1 = " +
+        "justo del tamaño de su caja; 1.2 le deja un poco de aire.")]
+    [SerializeField] private float margenMarca = 1.2f;
+
+    [Tooltip("Con qué material se dibuja la marca. Vacío = el default " +
+        "de sprites, que recibe la luz 2D de la escena. Si querés que " +
+        "se vea siempre con el mismo brillo, ponele uno Unlit.")]
+    [SerializeField] private Material materialMarca;
+
+    [Tooltip("Grados por segundo que gira la marca. Positivo = contra " +
+        "reloj. En 0 queda quieta.")]
+    [SerializeField] private float giroMarca = 25f;
+
+    [Tooltip("Cuántos segundos tarda un ciclo completo del parpadeo. " +
+        "Más alto = más lento. En 0 no parpadea.")]
+    [SerializeField] private float cicloParpadeo = 3f;
+
+    [Tooltip("Hasta dónde baja el alpha en lo más apagado del " +
+        "parpadeo, como fracción del normal. 0.5 = nunca baja de la " +
+        "mitad, así que no llega a apagarse del todo.")]
+    [Range(0f, 1f)]
+    [SerializeField] private float alphaMinimo = 0.5f;
+
     [Header("Rocas talladas")]
     [Tooltip("Una roca con cortes ya no tiene la forma de su sprite: su " +
         "contorno se dibuja con una línea que sigue la forma de verdad. " +
@@ -49,6 +81,7 @@ public class ResaltarBajoMano : MonoBehaviour
     [SerializeField] private Camera camara;
 
     private LineRenderer _linea;
+    private SpriteRenderer _marca;
     private static readonly int IdGrosor = Shader.PropertyToID("_Grosor");
     private static readonly int IdMargen = Shader.PropertyToID("_Margen");
 
@@ -72,13 +105,33 @@ public class ResaltarBajoMano : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (mano == null || materialContorno == null)
+        if (mano == null)
         {
             return;
         }
 
         bool agarrando = mano.Agarrado != null;
         Rigidbody2D objetivo = agarrando ? mano.Agarrado : mano.Candidato();
+        Color color = agarrando ? colorAgarrado : colorEncima;
+
+        // La marca va primero y aparte: es independiente del contorno,
+        // así podés usar una sin la otra. Antes esto estaba después del
+        // guard de abajo, y vaciar materialContorno —que es justamente
+        // lo que hacés si solo querés la marca— mataba las dos.
+        DibujarMarca(objetivo, color);
+
+        // Sin material de contorno no hay ni borde de sprite ni línea.
+        // Se apaga lo que haya quedado prendido y se sale.
+        if (materialContorno == null)
+        {
+            DibujarLinea(null, color);
+            if (_encendido != null)
+            {
+                _encendido.enabled = false;
+                _encendido = null;
+            }
+            return;
+        }
 
         // tallada: línea por la forma real, y el contorno del sprite apagado
         Tallable tallada = objetivo != null && materialLinea != null
@@ -88,7 +141,7 @@ public class ResaltarBajoMano : MonoBehaviour
         {
             tallada = null;
         }
-        DibujarLinea(tallada, agarrando ? colorAgarrado : colorEncima);
+        DibujarLinea(tallada, color);
 
         SpriteRenderer original = objetivo != null && tallada == null
             ? objetivo.GetComponentInChildren<SpriteRenderer>()
@@ -169,6 +222,80 @@ public class ResaltarBajoMano : MonoBehaviour
         _bloque.SetVector(IdRect, rectUV);
         _bloque.SetFloat(IdExpansion, e);
         c.SetPropertyBlock(_bloque);
+    }
+
+    /// <summary>
+    /// Pone la marca redonda encima de lo que esté bajo la mano,
+    /// centrada en su caja y escalada para cubrirla.
+    ///
+    /// Es UN solo renderer reusado, suelto en el mundo y no colgado de
+    /// la pieza: como la marca es redonda no necesita heredar la
+    /// rotación de nadie, y así no hay que crear un hijo por cada cosa
+    /// que toques.
+    /// </summary>
+    private void DibujarMarca(Rigidbody2D objetivo, Color color)
+    {
+        Renderer r = objetivo != null && marca != null
+            ? objetivo.GetComponentInChildren<Renderer>()
+            : null;
+
+        if (r == null)
+        {
+            if (_marca != null)
+            {
+                _marca.enabled = false;
+            }
+            return;
+        }
+
+        if (_marca == null)
+        {
+            var go = new GameObject("Marca bajo la mano");
+            _marca = go.AddComponent<SpriteRenderer>();
+        }
+
+        // se asigna cada frame por si cambiás el sprite o el material
+        // en el inspector con el juego andando
+        _marca.sprite = marca;
+        if (materialMarca != null)
+        {
+            _marca.sharedMaterial = materialMarca;
+        }
+
+        Bounds b = r.bounds;
+        _marca.transform.position = new Vector3(b.center.x, b.center.y,
+            r.transform.position.z);
+
+        // El lado más largo de la pieza manda: así una pieza alargada
+        // queda entera adentro de la marca en vez de asomar por las
+        // puntas.
+        float lado = Mathf.Max(b.size.x, b.size.y) * margenMarca;
+        float propio = marca.bounds.size.x;
+        float f = propio > 0.0001f ? lado / propio : 1f;
+        _marca.transform.localScale = new Vector3(f, f, 1f);
+
+        // Gira contra reloj: en 2D el Z positivo va en ese sentido. Sale
+        // de Time.time y no de un acumulador propio, así no se desfasa
+        // por los frames en los que la marca estuvo apagada.
+        _marca.transform.rotation = giroMarca != 0f
+            ? Quaternion.Euler(0f, 0f, Time.time * giroMarca)
+            : Quaternion.identity;
+
+        // Parpadeo: una onda suave entre alphaMinimo y el alpha normal.
+        // Nunca llega a cero a propósito — si se apagara del todo
+        // perderías de vista qué tenés debajo de la mano justo cuando
+        // vas a hacer clic.
+        if (cicloParpadeo > 0f)
+        {
+            float t = (Mathf.Sin(Time.time * Mathf.PI * 2f / cicloParpadeo) + 1f) * 0.5f;
+            color.a *= Mathf.Lerp(alphaMinimo, 1f, t);
+        }
+
+        _marca.color = color;
+        _marca.gameObject.layer = r.gameObject.layer;
+        _marca.sortingLayerID = r.sortingLayerID;
+        _marca.sortingOrder = r.sortingOrder + ordenExtra;
+        _marca.enabled = true;
     }
 
     /// <summary>
@@ -254,6 +381,10 @@ public class ResaltarBajoMano : MonoBehaviour
         if (_linea != null)
         {
             _linea.enabled = false;
+        }
+        if (_marca != null)
+        {
+            _marca.enabled = false;
         }
     }
 }

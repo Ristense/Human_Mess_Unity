@@ -290,7 +290,12 @@ public class Mano : MonoBehaviour
             return;
         }
 
-        if (Mouse.current.leftButton.wasPressedThisFrame)
+        // Con la rueda abierta el clic no hace nada: soltarlo acá
+        // dejaba caer la herramienta antes de que la R eligiera.
+        if (RuedaAbierta)
+        {
+        }
+        else if (Mouse.current.leftButton.wasPressedThisFrame)
         {
             Agarrar();
         }
@@ -560,15 +565,32 @@ public class Mano : MonoBehaviour
         if (TieneEquipado)
         {
             Modulo puesta = socketMano.Montado();
+
+            // Declaradas antes del && y no con "out Zona z": si el
+            // cortocircuito saltea la llamada, el compilador no puede
+            // garantizar que queden asignadas y no las deja usar abajo.
+            Zona z = null;
+            int zx = 0;
+            int zy = 0;
             bool hayDonde = puesta != null
                 && Zona.MejorCelda(puesta, puesta.transform.position, radioMontaje,
-                    out Zona z, out _, out _)
+                    out z, out zx, out zy)
                 && z != socketMano;
 
             if (hayDonde)
             {
-                _opciones.Add(new AccionMano("Guardar", "en la nave",
-                    () => Desequipar(true)));
+                // La celda se resuelve ACÁ y se la lleva el Action, igual
+                // que en el camino de arriba. Antes solo servía para
+                // decidir si mostrar la opción, y Desequipar la volvía a
+                // buscar al ejecutar: para entonces la mano ya se movió
+                // al cerrarse la rueda, el slot queda fuera de
+                // radioMontaje, y la herramienta terminaba suelta en vez
+                // de guardada.
+                Zona destino = z;
+                int dx = zx;
+                int dy = zy;
+                _opciones.Add(new AccionMano("Guardar", destino.name,
+                    () => Desequipar(true, destino, dx, dy)));
             }
 
             _opciones.Add(new AccionMano("Soltar", "queda flotando",
@@ -625,7 +647,15 @@ public class Mano : MonoBehaviour
     /// haya dónde guardarlo. Esa es la diferencia entre las dos
     /// opciones que ofrece la rueda con algo puesto.
     /// </summary>
-    private void Desequipar(bool guardar = true)
+    /// <param name="destino">
+    /// La celda ya elegida, si viene de la rueda. Manda sobre volver a
+    /// buscar la mejor: entre que elegís la opción y soltás la tecla, la
+    /// mano se mueve, y una búsqueda nueva puede no encontrar el slot
+    /// que tenías enfrente cuando elegiste. Null = buscar ahora, que es
+    /// lo que corresponde cuando no hubo elección previa.
+    /// </param>
+    private void Desequipar(bool guardar = true, Zona destino = null,
+        int cx = 0, int cy = 0)
     {
         if (socketMano == null)
         {
@@ -642,13 +672,22 @@ public class Mano : MonoBehaviour
 
         Zona zona = null;
         bool guardada = false;
-        if (guardar
-            && Zona.MejorCelda(pieza, pieza.transform.position, radioMontaje,
-                out Zona candidata, out int cx, out int cy)
-            && candidata != socketMano)
+        if (guardar)
         {
-            zona = candidata;
-            guardada = candidata.Montar(pieza, cx, cy);
+            if (destino != null && destino != socketMano && destino.Cabe(pieza, cx, cy))
+            {
+                zona = destino;
+                guardada = destino.Montar(pieza, cx, cy);
+            }
+            else if (Zona.MejorCelda(pieza, pieza.transform.position, radioMontaje,
+                         out Zona candidata, out int bx, out int by)
+                     && candidata != socketMano)
+            {
+                // sin celda elegida, o la elegida dejó de entrar en el
+                // medio: se busca la mejor ahora y listo
+                zona = candidata;
+                guardada = candidata.Montar(pieza, bx, by);
+            }
         }
 
         if (diagnostico)

@@ -31,6 +31,16 @@ public class BrazoIK : MonoBehaviour
         "doblado al revés de lo que esperás.")]
     [SerializeField] private int ladoCodo = 1;
 
+    [Tooltip("El codo se dobla para el lado del mouse (izquierda o " +
+        "derecha de la nave) en vez de quedar siempre del mismo lado. " +
+        "Cambia de lado solo cuando el mouse cruza la zona muerta.")]
+    [SerializeField] private bool codoAutomatico = true;
+
+    [Tooltip("Cuánto tiene que pasarse el mouse del eje de la nave, " +
+        "en unidades, para que el codo cambie de lado. Evita que " +
+        "titile si apuntás justo al medio.")]
+    [SerializeField] private float zonaMuertaCodo = 0.08f;
+
     [Header("Visual: lineas de debug (opcional)")]
     [SerializeField] private LineRenderer lineaSuperior;
     [SerializeField] private LineRenderer lineaInferior;
@@ -100,6 +110,7 @@ public class BrazoIK : MonoBehaviour
     }
 
     private bool _quieto;
+
     private Vector3 _quietoLocal;
 
     private void Reset()
@@ -144,6 +155,7 @@ public class BrazoIK : MonoBehaviour
         // guarda en él: si se guardara, el objetivo suave quedaría
         // pegado al borde y al sacar el mouse de la roca tardaría en
         // despegarse.
+        ElegirLadoCodo(_objetivoSuave);
         ResolverIK(hombro.position, Bloquear(hombro.position, _objetivoSuave));
         ActualizarVisual();
     }
@@ -372,6 +384,37 @@ public class BrazoIK : MonoBehaviour
         return c.GetComponentInParent<Modulo>() == null;
     }
 
+    private int _ladoActual = 1;
+
+    /// <summary>
+    /// El codo apunta hacia el lado en que está el mouse respecto al eje
+    /// de la nave. Se decide acá y no dentro de Pose, que se llama
+    /// varias veces por frame para probar poses del choque: si cambiara
+    /// de lado ahí adentro, esas pruebas no coincidirían con la pose final.
+    /// </summary>
+    private void ElegirLadoCodo(Vector2 objetivo)
+    {
+        if (!codoAutomatico)
+        {
+            _ladoActual = ladoCodo;
+            return;
+        }
+        float x = hombro.InverseTransformPoint(objetivo).x;
+        if (Mathf.Abs(x) < zonaMuertaCodo)
+        {
+            return;
+        }
+        // con el brazo mirando al objetivo, el lado + del codo cae del
+        // lado + local si el objetivo está a la izquierda del eje, y
+        // al revés; se prueba el signo real en vez de razonarlo
+        Vector2 o = hombro.position;
+        Vector2 dir = (objetivo - o).normalized;
+        Vector2 candidato = o + (Vector2)(Quaternion.Euler(0f, 0f, 45f) * dir);
+        float xc = hombro.InverseTransformPoint(candidato).x;
+        int lado = (xc > 0f) == (x > 0f) ? 1 : -1;
+        _ladoActual = lado * (ladoCodo >= 0 ? 1 : -1);
+    }
+
     private Vector2 _objetivoSuave;
     private Vector2 _velocidadSuave;
     private bool _tieneObjetivoSuave;
@@ -457,7 +500,7 @@ public class BrazoIK : MonoBehaviour
         float anguloHombro = Mathf.Acos(cosHombro);
 
         float anguloDireccion = Mathf.Atan2(direccion.y, direccion.x);
-        float anguloBrazo = anguloDireccion + ladoCodo * anguloHombro;
+        float anguloBrazo = anguloDireccion + _ladoActual * anguloHombro;
 
         codo = origen + new Vector2(Mathf.Cos(anguloBrazo), Mathf.Sin(anguloBrazo)) * largoSuperior;
     }

@@ -313,6 +313,20 @@ public class Anclaje : Herramienta
         }
         // sigue a la roca: se mueve y gira con ella
         Vector3 p = _clavadoEn.TransformPoint(_posEnClavado);
+        // si el taladro se comió justo el pedazo donde estaba clavado,
+        // la roca sigue existiendo pero el perno quedó en el aire
+        if (!SigueEnRoca(p))
+        {
+            if (++_framesSinRoca > 3)
+            {
+                Guardar();
+                return;
+            }
+        }
+        else
+        {
+            _framesSinRoca = 0;
+        }
         p.z = _z;
         perno.SetPositionAndRotation(p,
             _clavadoEn.rotation * _rotEnClavado);
@@ -465,6 +479,27 @@ public class Anclaje : Herramienta
         return null;
     }
 
+    private int _framesSinRoca;
+
+    private bool SigueEnRoca(Vector3 punta)
+    {
+        // margen chico: al tallar el collider se regenera y la punta
+        // queda justo en el borde
+        foreach (Collider2D c in _clavadoEn.GetComponentsInChildren<Collider2D>())
+        {
+            if (!c.enabled)
+            {
+                continue;
+            }
+            Vector2 cerca = c.ClosestPoint(punta);
+            if (((Vector2)punta - cerca).sqrMagnitude < 0.05f * 0.05f)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /// <summary>
     /// El dueño de la herramienta puede cambiar con el perno clavado
     /// (la guardás en un módulo, te la sacás, la soltás al espacio).
@@ -541,6 +576,7 @@ public class Anclaje : Herramienta
         _estado = Estado.Guardado;
         _clavadoEn = null;
         _rbClavado = null;
+        _framesSinRoca = 0;
         _cableLibre = false;
         DestruirAncla();
         if (_conRueda == this)

@@ -168,6 +168,12 @@ public class Mapa : MonoBehaviour
         return new Vector2Int(Mathf.Clamp(s.x, -h.x, h.x), Mathf.Clamp(s.y, -h.y, h.y));
     }
 
+    /// <summary>
+    /// Todos los casilleros del molde, prendidos o no. Para dibujar el
+    /// mapa entero con los huecos a la vista.
+    /// </summary>
+    public List<Vector2Int> TodosLosSectores() => Molde();
+
     /// <summary>Todos los casilleros del molde, prendidos o no.</summary>
     private List<Vector2Int> Molde()
     {

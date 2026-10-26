@@ -26,11 +26,20 @@ public readonly struct AccionMano
     /// <summary>Qué pasa si la elegís.</summary>
     public readonly Action hacer;
 
-    public AccionMano(string nombre, string detalle, Action hacer)
+    /// <summary>
+    /// Solo se hace eligiéndola en la rueda, nunca con el toque corto.
+    /// Para lo que no tiene vuelta atrás y no conviene que salga de
+    /// rebote: soltar lo que tenés agarrado porque justo no había dónde
+    /// guardarlo.
+    /// </summary>
+    public readonly bool soloRueda;
+
+    public AccionMano(string nombre, string detalle, Action hacer, bool soloRueda = false)
     {
         this.nombre = nombre;
         this.detalle = detalle;
         this.hacer = hacer;
+        this.soloRueda = soloRueda;
     }
 }
 

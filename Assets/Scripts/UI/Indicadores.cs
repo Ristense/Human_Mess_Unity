@@ -3,8 +3,10 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 /// <summary>
-/// Testigos del tablero: se prenden mientras apretás la tecla.
-/// Izquierda y derecha en azul al girar, el del medio en rojo al frenar.
+/// Testigos del tablero. Izquierda y derecha en azul mientras girás;
+/// el del medio en rojo mientras los amortiguadores están prendidos.
+/// Es un estado y no una tecla (Space los prende y apaga), así que el
+/// testigo es la única forma de saber cómo los dejaste.
 ///
 /// El color va por el MATERIAL y no por Image.color: el color de una
 /// Image se guarda como Color32, con tope 1, así que nunca puede pasar
@@ -13,7 +15,7 @@ using UnityEngine.UI;
 /// material. Por eso cada indicador recibe su propia copia del material
 /// neón, y el color se le cambia ahí.
 ///
-/// Lee las mismas teclas que Nave.cs (A/D, flechas y Espacio).
+/// El giro lee las mismas teclas que Nave.cs (A/D y flechas).
 ///
 /// Va en cualquier objeto del Canvas.
 /// </summary>
@@ -23,6 +25,10 @@ public class Indicadores : MonoBehaviour
     [SerializeField] private Graphic izquierda;
     [SerializeField] private Graphic derecha;
     [SerializeField] private Graphic freno;
+
+    [Tooltip("De dónde sale si los amortiguadores están prendidos. " +
+        "Vacío = la busca en la escena.")]
+    [SerializeField] private Nave nave;
 
     [Tooltip("El material con el shader HumanMess/Neon. Se copia uno " +
         "por indicador al arrancar; este no se toca.")]
@@ -52,6 +58,10 @@ public class Indicadores : MonoBehaviour
         _matIzq = Preparar(izquierda);
         _matDer = Preparar(derecha);
         _matFreno = Preparar(freno);
+        if (nave == null)
+        {
+            nave = FindAnyObjectByType<Nave>();
+        }
     }
 
     /// <summary>
@@ -83,7 +93,7 @@ public class Indicadores : MonoBehaviour
 
         bool izq = k.aKey.isPressed || k.leftArrowKey.isPressed;
         bool der = k.dKey.isPressed || k.rightArrowKey.isPressed;
-        bool frenar = k.spaceKey.isPressed;
+        bool frenar = nave != null && nave.Amortiguadores;
 
         Pintar(_matIzq, izquierda, izq, giroPrendido);
         Pintar(_matDer, derecha, der, giroPrendido);

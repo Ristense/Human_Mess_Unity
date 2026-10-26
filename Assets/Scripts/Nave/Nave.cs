@@ -5,16 +5,22 @@ using UnityEngine.InputSystem;
 /// La nave, como cuerpo físico real (Rigidbody2D).
 ///
 /// Controles: W y S empujan adelante y atrás, Q y E corren de costado,
-/// A y D giran, Space frena. Todo se logra aplicando fuerza y torque,
-/// no moviendo la posición
-/// a mano — así "mass" es un peso de verdad: si más adelante se
-/// vuelve más pesada (cargando chatarra), le va a costar más acelerar
-/// y girar, gratis, porque lo calcula el motor de físicas.
+/// A y D giran, Space prende y apaga los amortiguadores. Todo se logra
+/// aplicando fuerza y torque, no moviendo la posición a mano — así
+/// "mass" es un peso de verdad: si más adelante se vuelve más pesada
+/// (cargando chatarra), le va a costar más acelerar y girar, gratis,
+/// porque lo calcula el motor de físicas.
 ///
 /// En el espacio no hay roce: Linear Drag y Angular Drag del
 /// Rigidbody2D tienen que quedar en 0. Lo que se mueva, se sigue
-/// moviendo para siempre a menos que el jugador frene con el
-/// estabilizador.
+/// moviendo para siempre a menos que lo frenen los amortiguadores.
+///
+/// Los amortiguadores son los de Space Engineers: prendidos, la nave
+/// se pilotea sola en cada eje que NO estás tocando. Soltás W y frena;
+/// avanzás con deriva de costado y los laterales la corrigen solos;
+/// soltás A y deja de girar. No son un freno aparte: usan los mismos
+/// propulsores, con la misma fuerza y el mismo gas, así que una nave
+/// cargada tarda más en frenar y sin hidrógeno no frenan.
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 public class Nave : MonoBehaviour
@@ -38,13 +44,9 @@ public class Nave : MonoBehaviour
         "para acomodarse al lado de una roca, no para viajar.")]
     [SerializeField] private float lateralForce = 8f;
 
-    [Header("Estabilizador (tecla Space)")]
-    [Tooltip("No es un truco que frena gratis: dispara contra-fuerza " +
-        "real, en la dirección opuesta a como te estés moviendo/" +
-        "girando ahora mismo. Al ser fuerza real, una nave más pesada " +
-        "tarda más en frenar — mismo F = m·a que el resto del juego.")]
-    [SerializeField] private float stabilizeForce = 18f;
-    [SerializeField] private float stabilizeTorque = 14f;
+    [Header("Amortiguadores (Space prende y apaga)")]
+    [Tooltip("Arrancar con los amortiguadores prendidos.")]
+    [SerializeField] private bool amortiguadoresAlInicio = true;
 
     [Tooltip("Por debajo de esta velocidad (unidades/seg) se corta a " +
         "cero de una. Sin esto la nave queda derivando un resto " +
@@ -67,11 +69,30 @@ public class Nave : MonoBehaviour
         "que es la mejor forma de enterarse.")]
     [SerializeField] private SonidoContinuo sonidoMotor;
 
-    [Tooltip("Los de maniobra: girar y frenar con el estabilizador. " +
-        "Opcional — un chorrito corto, más agudo que el principal.")]
+    [Tooltip("Los de maniobra: girar y moverse de costado, a mano o " +
+        "corrigiendo solos. Opcional — un chorrito corto, más agudo " +
+        "que el principal.")]
     [SerializeField] private SonidoContinuo sonidoManiobra;
 
     private Rigidbody2D _rb;
+
+    /// <summary>¿Están prendidos los amortiguadores?</summary>
+    public bool Amortiguadores { get; private set; }
+
+    // Lo que hizo cada grupo de propulsores en el último paso de física,
+    // de -1 a 1 (fracción de su fuerza). Sale de lo que de verdad
+    // prendió —tu tecla o la corrección automática— y no de las teclas:
+    // así los chorros de gas y el sonido muestran a la nave pilotándose
+    // sola, y sin hidrógeno no muestran nada.
+
+    /// <summary>Motor principal: 1 adelante a fondo, -1 reversa a fondo.</summary>
+    public float Empuje { get; private set; }
+
+    /// <summary>Giro: -1 a la izquierda (A), 1 a la derecha (D).</summary>
+    public float Giro { get; private set; }
+
+    /// <summary>Costado: -1 hacia la Q, 1 hacia la E.</summary>
+    public float Costado { get; private set; }
 
     /// <summary>
     /// Descuenta el hidrógeno de este paso de física y dice si alcanzó.
@@ -109,161 +130,159 @@ public class Nave : MonoBehaviour
         // quedaron en otro valor, esto lo fuerza a cero al arrancar.
         _rb.linearDamping = 0f;
         _rb.angularDamping = 0f;
+        Amortiguadores = amortiguadoresAlInicio;
+    }
+
+    private void Update()
+    {
+        // En Update y no en FixedUpdate: "se apretó este frame" puede
+        // caer entre dos pasos de física y perderse, y un toggle que a
+        // veces no responde es peor que no tenerlo.
+        if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
+        {
+            Amortiguadores = !Amortiguadores;
+        }
     }
 
     private void FixedUpdate()
     {
         _gastadoEstePaso = false;
+        Empuje = 0f;
+        Giro = 0f;
+        Costado = 0f;
 
         // Keyboard.current (del paquete Input System), NO la clase
-        // UnityEngine.Input vieja. Este proyecto viene configurado en
-        // Project Settings > Player > Active Input Handling con el
-        // Input System nuevo, y ahí la clase vieja tira excepción en
-        // vez de simplemente no andar — avisa fuerte para que no te
-        // quede un bug silencioso.
-        //
-        // Si no hay teclado conectado (poco probable, pero pasa en
-        // testeo automatizado) Keyboard.current es null — por eso el
-        // chequeo antes de leerlo.
+        // UnityEngine.Input vieja: con el Input System nuevo activo, la
+        // vieja tira excepción. Y si no hay teclado (testeo automatizado)
+        // es null, por eso el chequeo.
         if (Keyboard.current == null)
         {
-            Sonar(false, false);
+            Sonar();
             return;
         }
+
+        Keyboard k = Keyboard.current;
+        float dt = Time.fixedDeltaTime;
 
         // A y D giran; Q y E mueven de costado, para correrse al lado
         // de una roca sin dejar de apuntarle.
-        float turn = 0f;
-        if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed)
-        {
-            turn -= 1f;
-        }
-        if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed)
-        {
-            turn += 1f;
-        }
-        // Si el giro te sale al revés de lo que esperás, dale vuelta
-        // el signo acá nomás — depende de cómo mira tu sprite.
-        _rb.AddTorque(-turn * turnTorque);
+        float turn = Eje(k.aKey.isPressed || k.leftArrowKey.isPressed,
+            k.dKey.isPressed || k.rightArrowKey.isPressed);
+        float thrust = Eje(k.sKey.isPressed || k.downArrowKey.isPressed,
+            k.wKey.isPressed || k.upArrowKey.isPressed);
+        float lado = Eje(k.qKey.isPressed, k.eKey.isPressed);
 
-        float thrust = 0f;
-        if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed)
-        {
-            thrust += 1f;
-        }
-        if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed)
-        {
-            thrust -= 1f;
-        }
+        // "Adelante" es transform.up: el arte de la nave mira hacia
+        // arriba. El costado es transform.right, así acompaña a la nave
+        // por mucho que la gires.
+        Vector2 adelante = transform.up;
+        Vector2 derecha = transform.right;
 
-        // "Adelante" es transform.up: asumimos que el arte de la nave
-        // mira hacia arriba por defecto, igual que en Godot.
-        Vector2 facing = transform.up;
+        // Cada eje decide por su cuenta: si lo estás tocando manda tu
+        // tecla; si no, y los amortiguadores están prendidos, manda la
+        // corrección. Por eso al avanzar con deriva de costado los
+        // laterales la van matando solos mientras vos solo apretás W.
+        float pideEmpuje = thrust != 0f ? thrust
+            : Amortiguadores ? Frenar(Vector2.Dot(_rb.linearVelocity, adelante),
+                adelante, thrustForce, reverseForce, dt)
+            : 0f;
+        float pideCostado = lado != 0f ? lado
+            : Amortiguadores ? Frenar(Vector2.Dot(_rb.linearVelocity, derecha),
+                derecha, lateralForce, lateralForce, dt)
+            : 0f;
 
-        // El sonido sale de si el motor PRENDIÓ, no de si apretaste la
-        // tecla: sin hidrógeno la nave queda muda, y esa es la forma
-        // más rápida de darte cuenta de que te quedaste sin gas.
-        bool empujando = false;
-        if (thrust != 0f && HayCombustible(Time.fixedDeltaTime))
+        // El gas se cobra una vez por paso para todo lo lineal. La
+        // corrección automática gasta igual que tu tecla: si frenar
+        // fuera gratis, quedarse sin hidrógeno no costaría nada.
+        if ((pideEmpuje != 0f || pideCostado != 0f) && HayCombustible(dt))
         {
-            _rb.AddForce(thrust > 0f ? facing * thrustForce : -facing * reverseForce);
-            empujando = true;
-        }
-
-        float lado = 0f;
-        if (Keyboard.current.qKey.isPressed)
-        {
-            lado -= 1f;
-        }
-        if (Keyboard.current.eKey.isPressed)
-        {
-            lado += 1f;
+            Empuje = pideEmpuje;
+            Costado = pideCostado;
+            float fAdelante = Empuje >= 0f ? Empuje * thrustForce : Empuje * reverseForce;
+            _rb.AddForce(adelante * fAdelante + derecha * (Costado * lateralForce));
         }
 
-        // transform.right, porque "adelante" es transform.up: el
-        // costado acompaña a la nave por mucho que la gires.
-        bool deCostado = false;
-        if (lado != 0f && HayCombustible(Time.fixedDeltaTime))
-        {
-            _rb.AddForce((Vector2)transform.right * (lado * lateralForce));
-            deCostado = true;
-        }
+        // El giro no gasta gas, igual que antes: ni a mano ni corregido.
+        Giro = turn != 0f ? turn
+            : Amortiguadores ? FrenarGiro(dt)
+            : 0f;
+        // Si el giro te sale al revés, dale vuelta el signo acá nomás —
+        // depende de cómo mira tu sprite.
+        _rb.AddTorque(-Giro * turnTorque);
 
-        // El estabilizador también son los motores: frenar gasta igual
-        // que acelerar. Si no, quedarse sin hidrógeno no costaría nada
-        // mientras se pudiera frenar gratis.
-        bool frenando = false;
-        if (Keyboard.current.spaceKey.isPressed && HayCombustible(Time.fixedDeltaTime))
-        {
-            Estabilizar(Time.fixedDeltaTime);
-            frenando = true;
-        }
-
-        // Girar, frenar y correrse de lado son los mismos propulsores
-        // chicos, así que comparten sonido.
-        Sonar(empujando, turn != 0f || frenando || deCostado);
-
+        Sonar();
         ClampABounds();
     }
 
-    private void Sonar(bool motor, bool maniobra)
+    private static float Eje(bool menos, bool mas)
     {
-        if (sonidoMotor != null)
-        {
-            sonidoMotor.Activo = motor;
-        }
-        if (sonidoManiobra != null)
-        {
-            sonidoManiobra.Activo = maniobra;
-        }
+        return (mas ? 1f : 0f) - (menos ? 1f : 0f);
     }
 
     /// <summary>
-    /// Frena apuntando a CERO, no a "bastante despacio" — la fuerza
-    /// se calcula para cancelar la velocidad ENTERA en este paso de
-    /// física, recortada a un tope para que no sea un tirón
-    /// instantáneo. Así se acerca a cero cada vez más despacio a
-    /// medida que falta menos, sin resto y sin necesitar umbral.
+    /// Cuánto motor hace falta para matar la velocidad de un eje, como
+    /// fracción de -1 a 1 de ese motor.
     ///
-    /// Unity expone Rigidbody2D.inertia directo — en Godot hacía
-    /// falta ir a buscarlo por PhysicsServer2D porque body_get_param
-    /// no lo daba bien. Acá no hace falta ese rodeo.
+    /// Apunta a cancelarla ENTERA en este paso, recortado a lo que el
+    /// motor da: lejos de cero va a fondo, y el último paso pide justo
+    /// lo que falta y la deja en cero, sin cola. La fuerza disponible es
+    /// distinta para cada lado (la reversa es más floja que el
+    /// principal), por eso se pasan las dos.
+    ///
+    /// El resto chiquito se corta a mano: sin eso quedaría un 0.01 u/s
+    /// que parece quieto y en un minuto te corrió media nave.
     /// </summary>
-    private void Estabilizar(float dt)
+    private float Frenar(float v, Vector2 eje, float fuerzaMas, float fuerzaMenos, float dt)
     {
-        if (dt <= 0f)
+        if (Mathf.Abs(v) <= umbralParada)
         {
-            return;
+            _rb.linearVelocity -= eje * v;
+            return 0f;
         }
+        float f = -v * _rb.mass / dt;
+        return f >= 0f
+            ? (fuerzaMas > 0f ? Mathf.Min(f / fuerzaMas, 1f) : 0f)
+            : (fuerzaMenos > 0f ? Mathf.Max(f / fuerzaMenos, -1f) : 0f);
+    }
 
-        if (_rb.linearVelocity.magnitude > umbralParada)
-        {
-            Vector2 f = -_rb.linearVelocity * _rb.mass / dt;
-            _rb.AddForce(Vector2.ClampMagnitude(f, stabilizeForce));
-        }
-        else
-        {
-            // El último tramo se corta a mano. Frenando con fuerza la
-            // velocidad decae de forma exponencial: cada paso queda
-            // menos, pero nunca llega a cero. Y un resto de 0.01 u/s
-            // parece quieto en un frame y te corrió media nave en un
-            // minuto. Por eso el salto final, que a esta escala no se
-            // ve pero termina el movimiento de verdad.
-            _rb.linearVelocity = Vector2.zero;
-        }
-
-        if (Mathf.Abs(_rb.angularVelocity) > umbralGiro)
-        {
-            // angularVelocity de Unity viene en GRADOS/seg y AddTorque
-            // trabaja en radianes: hay que convertir. Sin esto el torque
-            // pedido salía 57 veces más grande, siempre pegaba en el tope
-            // y con un tope alto se pasaba de largo y temblaba.
-            float t = -_rb.angularVelocity * Mathf.Deg2Rad * _rb.inertia / dt;
-            _rb.AddTorque(Mathf.Clamp(t, -stabilizeTorque, stabilizeTorque));
-        }
-        else
+    /// <summary>
+    /// Lo mismo para el giro, devuelto en la misma escala que A/D.
+    ///
+    /// angularVelocity viene en GRADOS/seg y AddTorque trabaja en
+    /// radianes: sin convertir, el torque pedido salía 57 veces más
+    /// grande, siempre pegaba en el tope y se pasaba de largo temblando.
+    /// </summary>
+    private float FrenarGiro(float dt)
+    {
+        float w = _rb.angularVelocity;
+        if (Mathf.Abs(w) <= umbralGiro)
         {
             _rb.angularVelocity = 0f;
+            return 0f;
+        }
+        if (turnTorque <= 0f)
+        {
+            return 0f;
+        }
+        float torque = -w * Mathf.Deg2Rad * _rb.inertia / dt;
+        // AddTorque(-Giro * turnTorque), así que Giro = -torque / turnTorque
+        return Mathf.Clamp(-torque / turnTorque, -1f, 1f);
+    }
+
+    // Por debajo de esto una corrección no cuenta como "prendido" para
+    // el sonido: si no, el motor zumbaría con cada empujoncito mínimo.
+    private const float UmbralSonido = 0.05f;
+
+    private void Sonar()
+    {
+        if (sonidoMotor != null)
+        {
+            sonidoMotor.Activo = Mathf.Abs(Empuje) > UmbralSonido;
+        }
+        if (sonidoManiobra != null)
+        {
+            sonidoManiobra.Activo = Mathf.Abs(Giro) > UmbralSonido
+                || Mathf.Abs(Costado) > UmbralSonido;
         }
     }
 

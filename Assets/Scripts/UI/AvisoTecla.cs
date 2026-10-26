@@ -106,7 +106,7 @@ public class AvisoTecla : MonoBehaviour
 
         bool agarrando = mano.Agarrado != null;
         bool visible = agarrando
-            ? cuando != Cuando.EncimaDeAlgo
+            ? cuando != Cuando.EncimaDeAlgo && TeclaSirve()
             : cuando != Cuando.Agarrando && mano.Candidato() != null;
         Mostrar(visible);
 
@@ -114,6 +114,20 @@ public class AvisoTecla : MonoBehaviour
         {
             Ocultables(mano.Progreso <= 0f);
         }
+    }
+
+    /// <summary>
+    /// Con algo agarrado, la tecla solo se anuncia si hay dónde ponerlo:
+    /// sin destino el toque no hace nada, y un aviso prendido ahí
+    /// invitaría a apretar para nada.
+    ///
+    /// Mientras la estás manteniendo sigue a la vista igual, aunque no
+    /// haya destino: es lo que abre la rueda (donde está Soltar), y el
+    /// aro de carga es lo único que te dice que la rueda viene.
+    /// </summary>
+    private bool TeclaSirve()
+    {
+        return mano.TeclaTieneDestino || mano.Progreso > 0f || mano.RuedaAbierta;
     }
 
     /// <summary>Prende o apaga las partes que estorban al mantener la tecla.</summary>

@@ -375,7 +375,14 @@ public class Mano : MonoBehaviour
             else if (!_esperaSoltar && _cargaTecla > 0f)
             {
                 ConstruirOpciones();
-                EjecutarIndice(0);
+                // Si lo primero es algo que solo vale desde la rueda (soltar
+                // lo agarrado, cuando no hay dónde guardarlo), el toque no
+                // hace nada. Antes soltaba: un toque para guardar que justo
+                // cae lejos de un socket te tiraba la pieza al espacio.
+                if (_opciones.Count > 0 && !_opciones[0].soloRueda)
+                {
+                    EjecutarIndice(0);
+                }
             }
 
             _cargaTecla = 0f;
@@ -533,18 +540,16 @@ public class Mano : MonoBehaviour
                 // Sin componente Modulo no entra en ningún lado, pero
                 // soltarlo siempre se puede. El warning de por qué no
                 // entra ya lo tira Equipar().
-                _opciones.Add(new AccionMano("Soltar", "", Soltar));
+                _opciones.Add(new AccionMano("Soltar", "", Soltar, soloRueda: true));
                 return;
             }
 
-            if (socketMano != null && socketMano.Cabe(pieza, 0, 0))
+            if (PuedeEquipar(pieza))
             {
                 _opciones.Add(new AccionMano("Equipar", "a la mano", () => Equipar()));
             }
 
-            if (Zona.MejorCelda(pieza, Agarrado.position, radioMontaje,
-                    out Zona zona, out int cx, out int cy)
-                && zona != socketMano)
+            if (DondeGuardar(pieza, out Zona zona, out int cx, out int cy))
             {
                 // Se guarda la celda resuelta ACÁ en vez de volver a
                 // buscarla al ejecutar. Si se volviera a buscar, la
@@ -558,7 +563,8 @@ public class Mano : MonoBehaviour
                     () => MontarEn(destino, dx, dy)));
             }
 
-            _opciones.Add(new AccionMano("Soltar", "", Soltar));
+            // Para soltar ya está el clic. Por la tecla solo desde la rueda.
+            _opciones.Add(new AccionMano("Soltar", "", Soltar, soloRueda: true));
             return;
         }
 
@@ -595,6 +601,42 @@ public class Mano : MonoBehaviour
 
             _opciones.Add(new AccionMano("Soltar", "queda flotando",
                 () => Desequipar(false)));
+        }
+    }
+
+    private bool PuedeEquipar(Modulo pieza)
+    {
+        return socketMano != null && socketMano.Cabe(pieza, 0, 0);
+    }
+
+    /// <summary>
+    /// La mejor celda libre cerca de lo agarrado, sin contar la mano
+    /// (eso es equipar, no guardar).
+    /// </summary>
+    private bool DondeGuardar(Modulo pieza, out Zona zona, out int cx, out int cy)
+    {
+        return Zona.MejorCelda(pieza, Agarrado.position, radioMontaje,
+                out zona, out cx, out cy)
+            && zona != socketMano;
+    }
+
+    /// <summary>
+    /// ¿El toque corto de la tecla haría algo con lo que tenés
+    /// agarrado? O sea: ¿hay dónde ponerlo, en la mano o en una zona?
+    ///
+    /// Es la misma cuenta que arma las opciones, por eso usa los mismos
+    /// dos chequeos: el aviso de la tecla se prende exactamente cuando
+    /// apretarla haría algo, ni antes ni después.
+    /// </summary>
+    public bool TeclaTieneDestino
+    {
+        get
+        {
+            if (Agarrado == null || !Agarrado.TryGetComponent(out Modulo pieza))
+            {
+                return false;
+            }
+            return PuedeEquipar(pieza) || DondeGuardar(pieza, out _, out _, out _);
         }
     }
 

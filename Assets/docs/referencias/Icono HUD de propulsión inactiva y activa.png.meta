@@ -1,0 +1,925 @@
+fileFormatVersion: 2
+guid: 921fd40e363058dd39d871761f3b7a29
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 1052011920712925534
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_0"
+  - first:
+      213: 1760802674782462706
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_1"
+  - first:
+      213: 5905668748151095409
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_2"
+  - first:
+      213: -8114568721563750475
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_3"
+  - first:
+      213: -2299609751402126889
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_4"
+  - first:
+      213: 5146867245500656538
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_5"
+  - first:
+      213: 351171297796671617
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_6"
+  - first:
+      213: 8383711889519981867
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_7"
+  - first:
+      213: 4599720872593658054
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_8"
+  - first:
+      213: -1957681755918008495
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_9"
+  - first:
+      213: -833985133326084726
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_10"
+  - first:
+      213: 4015324746510812033
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_11"
+  - first:
+      213: 9049009906345936178
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_12"
+  - first:
+      213: 6514570211077259543
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_13"
+  - first:
+      213: -2962630494851355697
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_14"
+  - first:
+      213: 5947887376013733165
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_15"
+  - first:
+      213: 3650257073273463617
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_16"
+  - first:
+      213: -7906229261040425776
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_17"
+  - first:
+      213: -2912323861514286190
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_18"
+  - first:
+      213: 7064017690296283113
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_19"
+  - first:
+      213: 4845274311596355345
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_20"
+  - first:
+      213: -2425277843305954060
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_21"
+  - first:
+      213: 3548195396667410074
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_22"
+  - first:
+      213: -6390835808890412201
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_23"
+  - first:
+      213: 8281220177036009857
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_24"
+  - first:
+      213: 1996124239709394218
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_25"
+  - first:
+      213: 3354892181573390613
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_26"
+  - first:
+      213: 2480290671592572410
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_27"
+  - first:
+      213: -8199948539668895533
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_28"
+  - first:
+      213: -3748309621600721864
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_29"
+  - first:
+      213: -6915911638700261517
+    second: "Icono HUD de propulsi\xF3n inactiva y activa_30"
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationMethod: 0
+  spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_0"
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1090
+        width: 202
+        height: 164
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e510291a44f799e00800000000000000
+      internalID: 1052011920712925534
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_1"
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 1242
+        width: 22
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f267fd14b0af6810800000000000000
+      internalID: 1760802674782462706
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_2"
+      rect:
+        serializedVersion: 2
+        x: 233
+        y: 1202
+        width: 45
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1700ca6df6625f150800000000000000
+      internalID: 5905668748151095409
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_3"
+      rect:
+        serializedVersion: 2
+        x: 255
+        y: 1116
+        width: 136
+        height: 131
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5bf62b59db2436f80800000000000000
+      internalID: -8114568721563750475
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_4"
+      rect:
+        serializedVersion: 2
+        x: 322
+        y: 1246
+        width: 14
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d1e6ad6d152610e0800000000000000
+      internalID: -2299609751402126889
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_5"
+      rect:
+        serializedVersion: 2
+        x: 553
+        y: 1092
+        width: 117
+        height: 162
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9be8229d785d6740800000000000000
+      internalID: 5146867245500656538
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_6"
+      rect:
+        serializedVersion: 2
+        x: 747
+        y: 1132
+        width: 156
+        height: 114
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 188cb7c4f6c9fd400800000000000000
+      internalID: 351171297796671617
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_7"
+      rect:
+        serializedVersion: 2
+        x: 904
+        y: 1242
+        width: 23
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b25be027b8de85470800000000000000
+      internalID: 8383711889519981867
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_8"
+      rect:
+        serializedVersion: 2
+        x: 1137
+        y: 1145
+        width: 117
+        height: 109
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c015e463cd75df30800000000000000
+      internalID: 4599720872593658054
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_9"
+      rect:
+        serializedVersion: 2
+        x: 289
+        y: 1229
+        width: 17
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 15f7e33b0dae4d4e0800000000000000
+      internalID: -1957681755918008495
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_10"
+      rect:
+        serializedVersion: 2
+        x: 303
+        y: 1229
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a85542c90f61d64f0800000000000000
+      internalID: -833985133326084726
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_11"
+      rect:
+        serializedVersion: 2
+        x: 378
+        y: 1221
+        width: 37
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 183cc95359c49b730800000000000000
+      internalID: 4015324746510812033
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_12"
+      rect:
+        serializedVersion: 2
+        x: 434
+        y: 1132
+        width: 59
+        height: 106
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2358dbce09a849d70800000000000000
+      internalID: 9049009906345936178
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_13"
+      rect:
+        serializedVersion: 2
+        x: 543
+        y: 1224
+        width: 18
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7110a9f5717686a50800000000000000
+      internalID: 6514570211077259543
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_14"
+      rect:
+        serializedVersion: 2
+        x: 673
+        y: 1223
+        width: 29
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fcb25a9f24f92e6d0800000000000000
+      internalID: -2962630494851355697
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_15"
+      rect:
+        serializedVersion: 2
+        x: 963
+        y: 1227
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d2d24532e042b8250800000000000000
+      internalID: 5947887376013733165
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_16"
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 1195
+        width: 35
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 143625fd77158a230800000000000000
+      internalID: 3650257073273463617
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_17"
+      rect:
+        serializedVersion: 2
+        x: 426
+        y: 1205
+        width: 27
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0d4e2e6406e674290800000000000000
+      internalID: -7906229261040425776
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_18"
+      rect:
+        serializedVersion: 2
+        x: 518
+        y: 1211
+        width: 10
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29b0c8bc0e85597d0800000000000000
+      internalID: -2912323861514286190
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_19"
+      rect:
+        serializedVersion: 2
+        x: 563
+        y: 1197
+        width: 33
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ef6f2d99ae680260800000000000000
+      internalID: 7064017690296283113
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_20"
+      rect:
+        serializedVersion: 2
+        x: 1092
+        y: 1204
+        width: 26
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11fa606a05fdd3340800000000000000
+      internalID: 4845274311596355345
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_21"
+      rect:
+        serializedVersion: 2
+        x: 209
+        y: 1156
+        width: 17
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f48f14b6aea75ed0800000000000000
+      internalID: -2425277843305954060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_22"
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 1171
+        width: 15
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9689040ae8bd3130800000000000000
+      internalID: 3548195396667410074
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_23"
+      rect:
+        serializedVersion: 2
+        x: 611
+        y: 1177
+        width: 11
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 753ad3121b03f47a0800000000000000
+      internalID: -6390835808890412201
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_24"
+      rect:
+        serializedVersion: 2
+        x: 705
+        y: 1148
+        width: 20
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 181670f00edcce270800000000000000
+      internalID: 8281220177036009857
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_25"
+      rect:
+        serializedVersion: 2
+        x: 1044
+        y: 1164
+        width: 78
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a25dc6b8b68a3bb10800000000000000
+      internalID: 1996124239709394218
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_26"
+      rect:
+        serializedVersion: 2
+        x: 498
+        y: 1150
+        width: 16
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 511da660aa8fe8e20800000000000000
+      internalID: 3354892181573390613
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_27"
+      rect:
+        serializedVersion: 2
+        x: 482
+        y: 1124
+        width: 15
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af58df38933cb6220800000000000000
+      internalID: 2480290671592572410
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_28"
+      rect:
+        serializedVersion: 2
+        x: 1214
+        y: 1096
+        width: 40
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3d86d849f3ee33e80800000000000000
+      internalID: -8199948539668895533
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_29"
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 1254
+        height: 1090
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8346f4032445bfbc0800000000000000
+      internalID: -3748309621600721864
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: "Icono HUD de propulsi\xF3n inactiva y activa_30"
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 1084
+        width: 19
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 37ff745b10fb500a0800000000000000
+      internalID: -6915911638700261517
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      "Icono HUD de propulsi\xF3n inactiva y activa_0": 1052011920712925534
+      "Icono HUD de propulsi\xF3n inactiva y activa_1": 1760802674782462706
+      "Icono HUD de propulsi\xF3n inactiva y activa_10": -833985133326084726
+      "Icono HUD de propulsi\xF3n inactiva y activa_11": 4015324746510812033
+      "Icono HUD de propulsi\xF3n inactiva y activa_12": 9049009906345936178
+      "Icono HUD de propulsi\xF3n inactiva y activa_13": 6514570211077259543
+      "Icono HUD de propulsi\xF3n inactiva y activa_14": -2962630494851355697
+      "Icono HUD de propulsi\xF3n inactiva y activa_15": 5947887376013733165
+      "Icono HUD de propulsi\xF3n inactiva y activa_16": 3650257073273463617
+      "Icono HUD de propulsi\xF3n inactiva y activa_17": -7906229261040425776
+      "Icono HUD de propulsi\xF3n inactiva y activa_18": -2912323861514286190
+      "Icono HUD de propulsi\xF3n inactiva y activa_19": 7064017690296283113
+      "Icono HUD de propulsi\xF3n inactiva y activa_2": 5905668748151095409
+      "Icono HUD de propulsi\xF3n inactiva y activa_20": 4845274311596355345
+      "Icono HUD de propulsi\xF3n inactiva y activa_21": -2425277843305954060
+      "Icono HUD de propulsi\xF3n inactiva y activa_22": 3548195396667410074
+      "Icono HUD de propulsi\xF3n inactiva y activa_23": -6390835808890412201
+      "Icono HUD de propulsi\xF3n inactiva y activa_24": 8281220177036009857
+      "Icono HUD de propulsi\xF3n inactiva y activa_25": 1996124239709394218
+      "Icono HUD de propulsi\xF3n inactiva y activa_26": 3354892181573390613
+      "Icono HUD de propulsi\xF3n inactiva y activa_27": 2480290671592572410
+      "Icono HUD de propulsi\xF3n inactiva y activa_28": -8199948539668895533
+      "Icono HUD de propulsi\xF3n inactiva y activa_29": -3748309621600721864
+      "Icono HUD de propulsi\xF3n inactiva y activa_3": -8114568721563750475
+      "Icono HUD de propulsi\xF3n inactiva y activa_30": -6915911638700261517
+      "Icono HUD de propulsi\xF3n inactiva y activa_4": -2299609751402126889
+      "Icono HUD de propulsi\xF3n inactiva y activa_5": 5146867245500656538
+      "Icono HUD de propulsi\xF3n inactiva y activa_6": 351171297796671617
+      "Icono HUD de propulsi\xF3n inactiva y activa_7": 8383711889519981867
+      "Icono HUD de propulsi\xF3n inactiva y activa_8": 4599720872593658054
+      "Icono HUD de propulsi\xF3n inactiva y activa_9": -1957681755918008495
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -73,6 +73,12 @@ public class Anclaje : Herramienta
     [Tooltip("Lo más largo. No se estira más que esto, por más que tire.")]
     [SerializeField] private float largoMaximo = 1.5f;
 
+    [Tooltip("Qué tan rápido puede acortarse el cable, en unidades por " +
+        "segundo. Sirve para que recoger o estirar el brazo no tire de " +
+        "golpe: el cable se pone a la medida de a poco y el asteroide " +
+        "viene en vez de saltar. Alargarlo es instantáneo.")]
+    [SerializeField] private float velocidadRecoger = 1.2f;
+
     [Tooltip("Cuánto cable de más se deja al tomar la medida, para que no " +
         "quede tenso de golpe.")]
     [SerializeField] private float holgura = 0.05f;
@@ -89,6 +95,7 @@ public class Anclaje : Herramienta
     private DistanceJoint2D _jointAncla;
     private float _largo;
     private float _tope;
+    private float _distAplicada;
 
     // Recién clavado, el cable corre libre: no frena nada. La medida se
     // toma recién con el primer Ctrl + rueda. Si se tomara al clavarse,
@@ -133,11 +140,7 @@ public class Anclaje : Herramienta
             {
                 return _largo;
             }
-            Rigidbody2D cuerpo = CuerpoAnclado();
-            Vector2 desde = cuerpo != null
-                ? (Vector2)cuerpo.transform.TransformPoint(AnclaEn(cuerpo))
-                : OrigenCable;
-            return Vector2.Distance(desde, perno.position);
+            return Vector2.Distance(OrigenCable, perno.position);
         }
     }
 
@@ -244,7 +247,7 @@ public class Anclaje : Herramienta
     }
 
     /// <summary>
-    /// Rueda para arriba recoge cable, para abajo lo suelta. En Windows un
+    /// Rueda para abajo recoge cable, para arriba lo suelta. En Windows un
     /// "clic" de la rueda vale 120, en otros lados 1: se usa solo el signo,
     /// así cada clic es un paso en cualquier mouse.
     /// </summary>
@@ -260,24 +263,15 @@ public class Anclaje : Herramienta
             // un poco. Si ya estás más lejos que el máximo, el tope es lo
             // que hay — un cable no se acorta solo de golpe.
             _cableLibre = false;
-            // medido desde donde se amarra de verdad (el centro, si tira
-            // del centro): si no, el cable nacería más corto o más largo
-            // que la distancia real y daría un tirón al trabarse
-            Rigidbody2D cuerpo = CuerpoAnclado();
-            Vector2 desde = cuerpo != null
-                ? (Vector2)cuerpo.transform.TransformPoint(AnclaEn(cuerpo))
-                : OrigenCable;
-            _largo = Vector2.Distance(desde, perno.position) + holgura;
+            // medido desde la herramienta, que es lo que se ve: el cable
+            // que dibujás tiene que medir lo que dice
+            _largo = Vector2.Distance(OrigenCable, perno.position) + holgura;
             _tope = Mathf.Max(largoMaximo, _largo);
             Log($"cable trabado en {_largo:0.00}");
         }
 
         float antes = _largo;
-        _largo = Mathf.Clamp(_largo - Mathf.Sign(rueda) * largoPorPaso, largoMinimo, _tope);
-        if (_jointAncla != null)
-        {
-            _jointAncla.distance = _largo;
-        }
+        _largo = Mathf.Clamp(_largo + Mathf.Sign(rueda) * largoPorPaso, largoMinimo, _tope);
         if (!Mathf.Approximately(antes, _largo))
         {
             Log($"cable: {_largo:0.00}");
@@ -522,6 +516,13 @@ public class Anclaje : Herramienta
             if (_jointAncla != null && cuerpo != null)
             {
                 _jointAncla.anchor = AnclaEn(cuerpo);
+                // el joint persigue la medida deseada: baja de a poco
+                // (velocidadRecoger) y sube al toque
+                float medidaDeseada = DistanciaJoint(cuerpo);
+                _distAplicada = medidaDeseada < _distAplicada
+                    ? Mathf.Max(medidaDeseada, _distAplicada - velocidadRecoger * Time.deltaTime)
+                    : medidaDeseada;
+                _jointAncla.distance = _distAplicada;
             }
             return;
         }
@@ -540,10 +541,29 @@ public class Anclaje : Herramienta
         _jointAncla.anchor = AnclaEn(cuerpo);
         _jointAncla.connectedAnchor = _rbClavado.transform.InverseTransformPoint(perno.position);
         _jointAncla.maxDistanceOnly = true;
-        _jointAncla.distance = _largo;
+        _distAplicada = DistanciaJoint(cuerpo);
+        _jointAncla.distance = _distAplicada;
         // la nave y la roca siguen chocando entre sí: el cable no las
         // vuelve fantasmas
         _jointAncla.enableCollision = true;
+    }
+
+    /// <summary>
+    /// El joint amarra desde el centro de la nave, pero el cable se ve
+    /// salir de la herramienta. Para que lo dibujado nunca pase del
+    /// largo, al joint se le descuenta lo que hay del amarre a la
+    /// herramienta: así, estirar el brazo con el cable tenso se lleva
+    /// la nave, y la punta del cable no se pasa de la medida.
+    /// </summary>
+    private float DistanciaJoint(Rigidbody2D cuerpo)
+    {
+        if (cuerpo == null)
+        {
+            return _largo;
+        }
+        Vector2 amarre = cuerpo.transform.TransformPoint(AnclaEn(cuerpo));
+        float resto = _largo - Vector2.Distance(amarre, OrigenCable);
+        return Mathf.Max(largoMinimo, resto);
     }
 
     /// <summary>Dónde se amarra el cable en el cuerpo, en su espacio local.</summary>

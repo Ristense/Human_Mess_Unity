@@ -1,0 +1,509 @@
+fileFormatVersion: 2
+guid: 9a29ce6461243e01fa3e9228e2cee853
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -4226259054151861500
+    second: Aviso_Estabilizador_0
+  - first:
+      213: -6203912350632270796
+    second: Aviso_Estabilizador_1
+  - first:
+      213: 4953945979301810800
+    second: Aviso_Estabilizador_2
+  - first:
+      213: -5575245957031550335
+    second: Aviso_Estabilizador_3
+  - first:
+      213: 4302664634956509474
+    second: Aviso_Estabilizador_4
+  - first:
+      213: -3402892976118129499
+    second: Aviso_Estabilizador_5
+  - first:
+      213: -9196722512647202886
+    second: Aviso_Estabilizador_6
+  - first:
+      213: 8221049688205453325
+    second: Aviso_Estabilizador_7
+  - first:
+      213: 6877292657425709847
+    second: Aviso_Estabilizador_8
+  - first:
+      213: 3887007477329829318
+    second: Aviso_Estabilizador_9
+  - first:
+      213: -2194603504082035044
+    second: Aviso_Estabilizador_10
+  - first:
+      213: 3000678402628638777
+    second: Aviso_Estabilizador_11
+  - first:
+      213: -5907661073070213800
+    second: Aviso_Estabilizador_12
+  - first:
+      213: -6870289003611106843
+    second: Aviso_Estabilizador_13
+  - first:
+      213: 246706118047794480
+    second: Aviso_Estabilizador_14
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationMethod: 0
+  spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Aviso_Estabilizador_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 61
+        width: 67
+        height: 70
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 40bff7c28cf4955c0800000000000000
+      internalID: -4226259054151861500
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aviso_Estabilizador_1
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 131
+        width: 36
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 434a7ea369647e9a0800000000000000
+      internalID: -6203912350632270796
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aviso_Estabilizador_2
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 89
+        width: 29
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 07252ccfe93ffb440800000000000000
+      internalID: 4953945979301810800
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aviso_Estabilizador_3
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 131
+        width: 133
+        height: 195
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 182a3bb475fb0a2b0800000000000000
+      internalID: -5575245957031550335
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aviso_Estabilizador_4
+      rect:
+        serializedVersion: 2
+        x: 69
+        y: 60
+        width: 117
+        height: 135
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 221f73260b226bb30800000000000000
+      internalID: 4302664634956509474
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aviso_Estabilizador_5
+      rect:
+        serializedVersion: 2
+        x: 187
+        y: 65
+        width: 32
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ac9ec51ede76c0d0800000000000000
+      internalID: -3402892976118129499
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aviso_Estabilizador_6
+      rect:
+        serializedVersion: 2
+        x: 203
+        y: 0
+        width: 101
+        height: 406
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab753dfd99dae5080800000000000000
+      internalID: -9196722512647202886
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aviso_Estabilizador_7
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 65
+        width: 32
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d08625a6229071270800000000000000
+      internalID: 8221049688205453325
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aviso_Estabilizador_8
+      rect:
+        serializedVersion: 2
+        x: 307
+        y: 131
+        width: 133
+        height: 195
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 71bf2460c3d017f50800000000000000
+      internalID: 6877292657425709847
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aviso_Estabilizador_9
+      rect:
+        serializedVersion: 2
+        x: 321
+        y: 60
+        width: 117
+        height: 135
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6cd1885d4bc61f530800000000000000
+      internalID: 3887007477329829318
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aviso_Estabilizador_10
+      rect:
+        serializedVersion: 2
+        x: 440
+        y: 61
+        width: 67
+        height: 70
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9edc549db33b81e0800000000000000
+      internalID: -2194603504082035044
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aviso_Estabilizador_11
+      rect:
+        serializedVersion: 2
+        x: 456
+        y: 131
+        width: 36
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 938ddd1eb1d84a920800000000000000
+      internalID: 3000678402628638777
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aviso_Estabilizador_12
+      rect:
+        serializedVersion: 2
+        x: 460
+        y: 89
+        width: 29
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8553f3edd85c30ea0800000000000000
+      internalID: -5907661073070213800
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aviso_Estabilizador_13
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 40
+        width: 36
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5e1dc733d84d7a0a0800000000000000
+      internalID: -6870289003611106843
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Aviso_Estabilizador_14
+      rect:
+        serializedVersion: 2
+        x: 456
+        y: 40
+        width: 36
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 035872248e97c6300800000000000000
+      internalID: 246706118047794480
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Aviso_Estabilizador_0: -4226259054151861500
+      Aviso_Estabilizador_1: -6203912350632270796
+      Aviso_Estabilizador_10: -2194603504082035044
+      Aviso_Estabilizador_11: 3000678402628638777
+      Aviso_Estabilizador_12: -5907661073070213800
+      Aviso_Estabilizador_13: -6870289003611106843
+      Aviso_Estabilizador_14: 246706118047794480
+      Aviso_Estabilizador_2: 4953945979301810800
+      Aviso_Estabilizador_3: -5575245957031550335
+      Aviso_Estabilizador_4: 4302664634956509474
+      Aviso_Estabilizador_5: -3402892976118129499
+      Aviso_Estabilizador_6: -9196722512647202886
+      Aviso_Estabilizador_7: 8221049688205453325
+      Aviso_Estabilizador_8: 6877292657425709847
+      Aviso_Estabilizador_9: 3887007477329829318
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

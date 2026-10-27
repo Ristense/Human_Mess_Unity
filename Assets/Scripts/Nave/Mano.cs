@@ -152,6 +152,22 @@ public class Mano : MonoBehaviour
     public bool TieneEquipado => socketMano != null && socketMano.Montado() != null;
 
     /// <summary>
+    /// ¿La herramienta calzada se está usando ahora mismo? (el taladro
+    /// picando). Mientras tanto la mano no ofrece agarrar nada — ver
+    /// Herramienta.EnUso.
+    /// </summary>
+    public bool HerramientaEnUso
+    {
+        get
+        {
+            Modulo puesta = socketMano != null ? socketMano.Montado() : null;
+            return puesta != null
+                && puesta.TryGetComponent(out Herramienta h)
+                && h.EnUso;
+        }
+    }
+
+    /// <summary>
     /// Cuánto va cargada la tecla, de 0 a 1. Para la barrita: si da 0
     /// no hay nada en curso y conviene esconderla.
     /// </summary>
@@ -1035,6 +1051,15 @@ public class Mano : MonoBehaviour
     private void Buscar(Vector2 mano, out Rigidbody2D rb, out Modulo montado)
     {
         rb = null;
+        montado = null;
+
+        // Con la herramienta trabajando la mano no agarra nada. Va acá
+        // y no en cada lugar que pregunta: así el resaltado, el aviso
+        // del mouse y el clic quedan de acuerdo sin poder desfasarse.
+        if (HerramientaEnUso)
+        {
+            return;
+        }
 
         // Lo que esté MONTADO no lo encuentra Physics2D (tiene la
         // física apagada), así que se busca aparte y tiene prioridad:

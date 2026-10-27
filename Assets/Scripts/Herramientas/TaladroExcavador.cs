@@ -189,6 +189,9 @@ public class TaladroExcavador : Herramienta
     /// <summary>¿Está cavando ahora mismo?</summary>
     public bool Taladrando { get; private set; }
 
+    /// <summary>Picando no se agarra nada: ver Herramienta.EnUso.</summary>
+    public override bool EnUso => Taladrando;
+
     /// <summary>
     /// El brazo frena con el radio de UN disco: el canal que cavan los
     /// dos es el doble de ancho, así que el cabezal entra cómodo en lo

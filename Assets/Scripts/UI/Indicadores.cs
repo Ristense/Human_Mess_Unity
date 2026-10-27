@@ -30,6 +30,21 @@ public class Indicadores : MonoBehaviour
         "Vacío = la busca en la escena.")]
     [SerializeField] private Nave nave;
 
+    [Tooltip("Dibujo del testigo con los amortiguadores APAGADOS. " +
+        "Vacío = no se cambia el sprite y solo cambia el color.")]
+    [SerializeField] private Sprite frenoApagado;
+
+    [Tooltip("Dibujo con los amortiguadores PRENDIDOS.")]
+    [SerializeField] private Sprite frenoPrendidoSprite;
+
+    [Tooltip("Cómo se ve el testigo del estabilizador apagado.\n\n" +
+        "Tiene su propio color y no usa el \"Apagado\" de abajo porque " +
+        "ese está en alfa 0: los de giro son teclas y desaparecen al " +
+        "soltarlas, pero este es un ESTADO. Su dibujo apagado es la " +
+        "base y tiene que verse siempre — si no, no sabrías que el " +
+        "estabilizador existe hasta prenderlo.")]
+    [SerializeField] private Color frenoApagadoColor = new Color(1f, 1f, 1f, 0.35f);
+
     [Tooltip("El material con el shader HumanMess/Neon. Se copia uno " +
         "por indicador al arrancar; este no se toca.")]
     [SerializeField] private Material materialNeon;
@@ -97,14 +112,35 @@ public class Indicadores : MonoBehaviour
 
         Pintar(_matIzq, izquierda, izq, giroPrendido);
         Pintar(_matDer, derecha, der, giroPrendido);
-        Pintar(_matFreno, freno, frenar, frenoPrendido);
+        Pintar(_matFreno, freno, frenar, frenoPrendido, frenoApagadoColor);
+        Dibujo(freno, frenar ? frenoPrendidoSprite : frenoApagado);
     }
 
-    private void Pintar(Material m, Graphic g, bool prendido, Color color)
+    /// <summary>
+    /// Le cambia el dibujo a un testigo. Con el sprite en null no toca
+    /// nada: así el que no usa dos dibujos se queda con el suyo.
+    /// </summary>
+    private static void Dibujo(Graphic g, Sprite s)
     {
+        if (s == null || !(g is Image img) || img.sprite == s)
+        {
+            return;
+        }
+        img.sprite = s;
+    }
+
+    /// <summary>
+    /// Prende o apaga un testigo. "colorApagado" en null usa el de
+    /// todos; el del estabilizador pasa el suyo porque tiene que
+    /// quedar visible apagado.
+    /// </summary>
+    private void Pintar(Material m, Graphic g, bool prendido, Color color,
+        Color? colorApagado = null)
+    {
+        Color off = colorApagado ?? apagado;
         if (m != null)
         {
-            m.SetColor(IdColor, prendido ? color : apagado);
+            m.SetColor(IdColor, prendido ? color : off);
             m.SetFloat(IdIntensidad, prendido ? intensidad : 1f);
             return;
         }
@@ -112,7 +148,7 @@ public class Indicadores : MonoBehaviour
         // sin material neón asignado, al menos que cambie de color
         if (g != null)
         {
-            g.color = prendido ? color : apagado;
+            g.color = prendido ? color : off;
         }
     }
 

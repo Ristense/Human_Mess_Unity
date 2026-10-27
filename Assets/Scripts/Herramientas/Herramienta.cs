@@ -27,6 +27,18 @@ public class Herramienta : MonoBehaviour
     /// </summary>
     public virtual float Grosor => 0f;
 
+    /// <summary>
+    /// ¿Se está usando AHORA? (el taladro picando, no solo calzado).
+    ///
+    /// Mientras algo está en uso, la mano no ofrece agarrar: no se
+    /// resalta lo que hay debajo ni se avisa el clic. Si no, picando una
+    /// roca te aparece su contorno diciéndote que la podés agarrar, y un
+    /// clic te deja colgado de lo mismo que estás cortando.
+    ///
+    /// Por defecto false: una herramienta que no la pisa nunca estorba.
+    /// </summary>
+    public virtual bool EnUso => false;
+
     /// <summary>La Mano que la tiene calzada, o null si no está equipada.</summary>
     protected Mano Usuario { get; private set; }
 

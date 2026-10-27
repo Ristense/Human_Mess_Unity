@@ -380,6 +380,146 @@ public class Mapa : MonoBehaviour
         return salida;
     }
 
+    /// <summary>
+    /// El contorno de la forma de esta partida, como una o más vueltas
+    /// cerradas de puntos en mundo. Solo el BORDE: las paredes entre dos
+    /// sectores prendidos no van, porque ahí no hay nada que delimitar.
+    ///
+    /// Se arma con los lados de cada sector prendido cuyo vecino está
+    /// apagado, encadenados por sus puntas. Mirar lado por lado y no la
+    /// forma entera es lo que hace que salga bien con cualquier figura:
+    /// una L, una T, o dos brazos que se tocan solo por una diagonal.
+    ///
+    /// Puede devolver más de una vuelta: si la forma encierra un hueco,
+    /// el agujero es su propio contorno.
+    ///
+    /// Los puntos en línea recta se juntan en uno solo, así un lado
+    /// largo son dos puntos y no uno por sector.
+    /// </summary>
+    public List<List<Vector2>> ContornoBorde()
+    {
+        // De cada vértice, a qué vértices sale un lado del borde. Se
+        // trabaja en coordenadas ENTERAS de la grilla y no en mundo: dos
+        // sectores vecinos tienen que compartir el vértice exacto, y
+        // comparar floats para eso es pedir que algún día no cierre.
+        var salidas = new Dictionary<Vector2Int, List<Vector2Int>>();
+
+        foreach (Vector2Int s in Activos())
+        {
+            // Los lados van en sentido antihorario, con lo prendido
+            // siempre a la IZQUIERDA. Así las puntas de un lado calzan
+            // con las del siguiente y la vuelta se encadena sola.
+            Vector2Int ai = new Vector2Int(s.x, s.y);
+            Vector2Int ad = new Vector2Int(s.x + 1, s.y);
+            Vector2Int rd = new Vector2Int(s.x + 1, s.y + 1);
+            Vector2Int ri = new Vector2Int(s.x, s.y + 1);
+
+            if (!Activo(s + Vector2Int.down)) Sumar(salidas, ai, ad);
+            if (!Activo(s + Vector2Int.right)) Sumar(salidas, ad, rd);
+            if (!Activo(s + Vector2Int.up)) Sumar(salidas, rd, ri);
+            if (!Activo(s + Vector2Int.left)) Sumar(salidas, ri, ai);
+        }
+
+        var vueltas = new List<List<Vector2>>();
+        while (salidas.Count > 0)
+        {
+            var vuelta = new List<Vector2Int>();
+            Vector2Int inicio = PrimeraClave(salidas);
+            Vector2Int v = inicio;
+
+            while (Tomar(salidas, v, out Vector2Int siguiente))
+            {
+                vuelta.Add(v);
+                v = siguiente;
+                if (v == inicio)
+                {
+                    break;
+                }
+            }
+
+            if (vuelta.Count >= 3)
+            {
+                vueltas.Add(Enderezar(vuelta));
+            }
+        }
+        return vueltas;
+    }
+
+    private static void Sumar(Dictionary<Vector2Int, List<Vector2Int>> d,
+        Vector2Int desde, Vector2Int hasta)
+    {
+        if (!d.TryGetValue(desde, out List<Vector2Int> lista))
+        {
+            lista = new List<Vector2Int>();
+            d[desde] = lista;
+        }
+        lista.Add(hasta);
+    }
+
+    private static Vector2Int PrimeraClave(Dictionary<Vector2Int, List<Vector2Int>> d)
+    {
+        foreach (Vector2Int k in d.Keys)
+        {
+            return k;
+        }
+        return Vector2Int.zero;
+    }
+
+    /// <summary>
+    /// Saca un lado que salga de este vértice y lo devuelve. Cada lado
+    /// se usa una sola vez: por eso se borra al tomarlo, y por eso un
+    /// vértice donde la forma se pellizca (dos brazos que se tocan solo
+    /// en la diagonal) no manda el recorrido al mismo lado dos veces.
+    /// </summary>
+    private static bool Tomar(Dictionary<Vector2Int, List<Vector2Int>> d,
+        Vector2Int desde, out Vector2Int hasta)
+    {
+        hasta = default;
+        if (!d.TryGetValue(desde, out List<Vector2Int> lista) || lista.Count == 0)
+        {
+            return false;
+        }
+        hasta = lista[lista.Count - 1];
+        lista.RemoveAt(lista.Count - 1);
+        if (lista.Count == 0)
+        {
+            d.Remove(desde);
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// Pasa la vuelta a mundo tirando los puntos que están en medio de
+    /// un tramo recto: solo quedan las esquinas de verdad.
+    /// </summary>
+    private List<Vector2> Enderezar(List<Vector2Int> vuelta)
+    {
+        var salida = new List<Vector2>(vuelta.Count);
+        int n = vuelta.Count;
+        for (int i = 0; i < n; i++)
+        {
+            Vector2Int antes = vuelta[(i - 1 + n) % n];
+            Vector2Int actual = vuelta[i];
+            Vector2Int despues = vuelta[(i + 1) % n];
+            if (actual - antes != despues - actual)
+            {
+                salida.Add(VerticeMundo(actual));
+            }
+        }
+        return salida;
+    }
+
+    /// <summary>
+    /// Un vértice de la grilla en mundo. El (0, 0) del sector del centro
+    /// es su esquina de abajo a la izquierda, por eso el medio sector de
+    /// corrimiento.
+    /// </summary>
+    private Vector2 VerticeMundo(Vector2Int v)
+    {
+        return (Vector2)transform.position
+            + new Vector2((v.x - 0.5f) * sectorSize.x, (v.y - 0.5f) * sectorSize.y);
+    }
+
     /// <summary>Las 4 esquinas de un sector: arriba-izq, arriba-der, abajo-der, abajo-izq.</summary>
     public Vector2[] EsquinasSector(Vector2Int s)
     {

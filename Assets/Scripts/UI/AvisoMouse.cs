@@ -53,8 +53,12 @@ public class AvisoMouse : MonoBehaviour
             return;
         }
 
+        // Con la herramienta trabajando se esconde entero: ya estás
+        // apretando el botón que hay que apretar, y el cartel solo tapa
+        // justo lo que estás mirando. El izquierdo se apaga solo,
+        // porque mientras tanto no hay candidato.
         bool izq = mano.Agarrado != null || mano.Candidato() != null;
-        bool der = avisarHerramienta && mano.TieneEquipado;
+        bool der = avisarHerramienta && mano.TieneEquipado && !mano.HerramientaEnUso;
 
         Mostrar(izq || der);
 

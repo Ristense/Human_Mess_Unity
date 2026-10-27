@@ -49,6 +49,18 @@ public class Dialogo : MonoBehaviour
         "monito en las líneas sin imagen (el narrador).")]
     [SerializeField] private GameObject marco;
 
+    [Tooltip("Cuánto dura el fundido del retrato al cambiar de " +
+        "personaje, en segundos (la mitad se va, la mitad entra). " +
+        "0 = cambia seco, como antes.")]
+    [Min(0f)]
+    [SerializeField] private float segundosFundido = 0.25f;
+
+    [Tooltip("Opcional: un CanvasGroup en el retrato. Si lo ponés, el " +
+        "fundido se le hace a ÉL, así el monito y su marco entran y " +
+        "salen juntos. Vacío = se funde solo la imagen, y el marco " +
+        "aparece seco.")]
+    [SerializeField] private CanvasGroup grupoRetrato;
+
     [Tooltip("Opcional: algo que aparece cuando la línea terminó de " +
         "escribirse, para avisar que se puede seguir (una flechita).")]
     [SerializeField] private GameObject indicadorSeguir;
@@ -89,6 +101,8 @@ public class Dialogo : MonoBehaviour
     private bool _activo;
     private int _frameInicio;
     private Coroutine _escritura;
+    private Coroutine _fundido;
+    private Sprite _retrato;
 
     /// <summary>
     /// Arranca el diálogo desde la primera línea. "alTerminar" se llama
@@ -100,6 +114,18 @@ public class Dialogo : MonoBehaviour
         _alTerminar = alTerminar;
         _actual = -1;
         _activo = true;
+
+        // El retrato arranca vacío y transparente: así el primero entra
+        // con su fundido en vez de aparecer de golpe. Y si el diálogo se
+        // vuelve a abrir, no queda el monito de la última vez.
+        if (_fundido != null)
+        {
+            StopCoroutine(_fundido);
+            _fundido = null;
+        }
+        PonerRetrato(null);
+        Alfa(0f);
+
         // El clic que apretó "Jugar" es de este mismo frame. Sin esto,
         // ese clic también contaría como "avanzar" y la primera línea se
         // saltaría sin que la veas.
@@ -173,15 +199,7 @@ public class Dialogo : MonoBehaviour
         {
             nombre.text = linea.quien;
         }
-        if (imagen != null)
-        {
-            imagen.sprite = linea.imagen;
-            imagen.enabled = linea.imagen != null;
-        }
-        if (marco != null)
-        {
-            marco.SetActive(linea.imagen != null);
-        }
+        MostrarRetrato(linea.imagen);
         texto.text = linea.texto;
         texto.maxVisibleCharacters = 0;
         texto.ForceMeshUpdate();
@@ -235,6 +253,114 @@ public class Dialogo : MonoBehaviour
         }
 
         Completar();
+    }
+
+    /// <summary>
+    /// Cambia el monito con un fundido.
+    ///
+    /// Solo si de verdad CAMBIA de sprite: si el mismo personaje habla
+    /// dos líneas seguidas, fundirlo igual se vería como un parpadeo
+    /// sin motivo — y es el caso más común.
+    ///
+    /// Va en su propia corrutina, aparte de la que escribe el texto:
+    /// las dos corren a la vez, así el texto no espera al retrato.
+    /// </summary>
+    private void MostrarRetrato(Sprite nuevo)
+    {
+        if (nuevo == _retrato)
+        {
+            return;
+        }
+
+        if (_fundido != null)
+        {
+            StopCoroutine(_fundido);
+            _fundido = null;
+        }
+
+        if (segundosFundido <= 0f)
+        {
+            PonerRetrato(nuevo);
+            Alfa(1f);
+            return;
+        }
+        _fundido = StartCoroutine(Fundir(nuevo));
+    }
+
+    private IEnumerator Fundir(Sprite nuevo)
+    {
+        float mitad = segundosFundido * 0.5f;
+
+        // el que estaba se va primero; si no había nadie, no hay nada
+        // que sacar y entra directo
+        if (_retrato != null)
+        {
+            yield return Rampa(Leer(), 0f, mitad);
+        }
+
+        PonerRetrato(nuevo);
+
+        if (nuevo != null)
+        {
+            yield return Rampa(0f, 1f, mitad);
+        }
+        _fundido = null;
+    }
+
+    private IEnumerator Rampa(float desde, float hasta, float duracion)
+    {
+        if (duracion <= 0f)
+        {
+            Alfa(hasta);
+            yield break;
+        }
+
+        // sin escala, igual que la máquina de escribir: con el juego en
+        // pausa los diálogos tienen que seguir andando
+        for (float t = 0f; t < duracion; t += Time.unscaledDeltaTime)
+        {
+            Alfa(Mathf.Lerp(desde, hasta, t / duracion));
+            yield return null;
+        }
+        Alfa(hasta);
+    }
+
+    private void PonerRetrato(Sprite s)
+    {
+        _retrato = s;
+        if (imagen != null)
+        {
+            imagen.sprite = s;
+            imagen.enabled = s != null;
+        }
+        if (marco != null)
+        {
+            marco.SetActive(s != null);
+        }
+    }
+
+    private void Alfa(float a)
+    {
+        if (grupoRetrato != null)
+        {
+            grupoRetrato.alpha = a;
+            return;
+        }
+        if (imagen != null)
+        {
+            Color c = imagen.color;
+            c.a = a;
+            imagen.color = c;
+        }
+    }
+
+    private float Leer()
+    {
+        if (grupoRetrato != null)
+        {
+            return grupoRetrato.alpha;
+        }
+        return imagen != null ? imagen.color.a : 1f;
     }
 
     private void SonarLetra(AudioClip clip)

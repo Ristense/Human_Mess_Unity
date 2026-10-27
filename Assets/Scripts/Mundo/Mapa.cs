@@ -381,6 +381,60 @@ public class Mapa : MonoBehaviour
     }
 
     /// <summary>
+    /// Cuánto empuja el borde hacia adentro en este punto, como un
+    /// vector de largo 0 a 1 (más cerca del borde, más largo). Cero si
+    /// estás lejos de cualquier borde, o directamente afuera — de eso
+    /// se encarga Recortar.
+    ///
+    /// Solo cuentan los lados del sector cuyo vecino está APAGADO: es
+    /// la misma regla que dibuja el contorno, así que empuja
+    /// exactamente donde ves la línea y no en las paredes internas.
+    ///
+    /// Los lados se suman en vez de quedarse con el más cercano: en una
+    /// esquina los dos empujan y salís en diagonal, en vez de que la
+    /// fuerza salte de una pared a la otra.
+    /// </summary>
+    public Vector2 EmpujeDesdeBorde(Vector2 worldPos, float margen)
+    {
+        if (margen <= 0f)
+        {
+            return Vector2.zero;
+        }
+
+        Vector2Int s = WorldToSector(worldPos);
+        if (!Activo(s))
+        {
+            return Vector2.zero;
+        }
+
+        Rect r = RectSector(s);
+        Vector2 e = Vector2.zero;
+        if (!Activo(s + Vector2Int.left))
+        {
+            e += Vector2.right * Cerca(worldPos.x - r.xMin, margen);
+        }
+        if (!Activo(s + Vector2Int.right))
+        {
+            e += Vector2.left * Cerca(r.xMax - worldPos.x, margen);
+        }
+        if (!Activo(s + Vector2Int.down))
+        {
+            e += Vector2.up * Cerca(worldPos.y - r.yMin, margen);
+        }
+        if (!Activo(s + Vector2Int.up))
+        {
+            e += Vector2.down * Cerca(r.yMax - worldPos.y, margen);
+        }
+        return e;
+    }
+
+    // 0 en el límite del margen, 1 pegado a la pared
+    private static float Cerca(float distancia, float margen)
+    {
+        return distancia >= margen ? 0f : 1f - Mathf.Max(distancia, 0f) / margen;
+    }
+
+    /// <summary>
     /// El contorno de la forma de esta partida, como una o más vueltas
     /// cerradas de puntos en mundo. Solo el BORDE: las paredes entre dos
     /// sectores prendidos no van, porque ahí no hay nada que delimitar.

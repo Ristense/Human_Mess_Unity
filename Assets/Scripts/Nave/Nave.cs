@@ -58,6 +58,24 @@ public class Nave : MonoBehaviour
     [Tooltip("Lo mismo pero para el giro, en grados/seg.")]
     [SerializeField] private float umbralGiro = 0.5f;
 
+    [Header("Borde del mapa")]
+    [Tooltip("A cuántas unidades del borde empieza a empujarte para " +
+        "adentro. Es el colchón: cuanto más grande, más suave te frena " +
+        "y más lejos de la pared te da vuelta. 0 = sin colchón, solo el " +
+        "tope duro.")]
+    [Min(0f)]
+    [SerializeField] private float margenBorde = 6f;
+
+    [Tooltip("Con cuánta fuerza empuja pegado a la pared. Tiene que " +
+        "ser bastante más que el motor principal, si no podés forzar " +
+        "el paso a fondo y quedás clavado contra el tope duro.")]
+    [SerializeField] private float fuerzaBorde = 60f;
+
+    [Tooltip("Cuánto frena la velocidad que va hacia afuera dentro del " +
+        "colchón. Sin esto el borde es un resorte y te devuelve con el " +
+        "mismo envión que traías; con esto te amortigua.")]
+    [SerializeField] private float frenoBorde = 60f;
+
     [Tooltip("Los tanques, para gastar hidrógeno al empujar. Vacío = " +
         "lo busca en la nave. Sin soporte vital los motores andan " +
         "gratis, como antes.")]
@@ -211,7 +229,47 @@ public class Nave : MonoBehaviour
         _rb.AddTorque(-Giro * turnTorque);
 
         Sonar();
+        EmpujarDesdeBorde(dt);
         ClampABounds();
+    }
+
+    /// <summary>
+    /// El borde del mapa no es una pared: es un colchón que te frena y
+    /// te devuelve. Antes el tope duro te dejaba clavado contra una
+    /// pared invisible sin nada que hacer; así en cambio sentís que te
+    /// empujan y salís girando.
+    ///
+    /// El tope duro sigue ahí atrás por si acaso, pero con un colchón
+    /// bien puesto no deberías llegar a tocarlo nunca.
+    /// </summary>
+    private void EmpujarDesdeBorde(float dt)
+    {
+        if (mapa == null || dt <= 0f)
+        {
+            return;
+        }
+
+        Vector2 empuje = mapa.EmpujeDesdeBorde(_rb.position, margenBorde);
+        if (empuje == Vector2.zero)
+        {
+            return;
+        }
+
+        // En una esquina los dos lados suman y el largo pasa de 1: lo
+        // que importa es la dirección, la intensidad va aparte.
+        Vector2 adentro = empuje.normalized;
+        float profundidad = Mathf.Clamp01(empuje.magnitude);
+        _rb.AddForce(adentro * (fuerzaBorde * profundidad));
+
+        // Y se frena lo que va hacia afuera, como hace el estabilizador:
+        // apuntando a cancelarlo entero en este paso, recortado a un
+        // tope para que no sea un tirón.
+        float saliendo = Vector2.Dot(_rb.linearVelocity, -adentro);
+        if (saliendo > 0f)
+        {
+            Vector2 freno = adentro * (saliendo * _rb.mass / dt);
+            _rb.AddForce(Vector2.ClampMagnitude(freno, frenoBorde * profundidad));
+        }
     }
 
     private static float Eje(bool menos, bool mas)

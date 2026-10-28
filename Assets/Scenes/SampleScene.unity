@@ -14004,7 +14004,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SincronizarZoom3D
   camaraJuego: {fileID: 519420031}
-  intensidad: 0.312
+  intensidad: 0
 --- !u!114 &989958248
 MonoBehaviour:
   m_ObjectHideFlags: 0

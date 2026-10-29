@@ -24,8 +24,12 @@ public class Dialogo : MonoBehaviour
         [Tooltip("Quién habla. Vacío = narrador, no se muestra nombre.")]
         public string quien;
 
-        [Tooltip("El monito de quien habla. Vacío = no se muestra imagen.")]
-        public Sprite imagen;
+        [Tooltip("El rig de quien habla: el objeto con sus piezas y sus " +
+            "huesos, de los que mira la cámara del retrato. Vacío = " +
+            "narrador, no se muestra a nadie.\n\n" +
+            "Los personajes viven todos puestos en la escena; el " +
+            "diálogo prende el de esta línea y apaga a los demás.")]
+        public GameObject personaje;
 
         [TextArea(2, 6)]
         public string texto;
@@ -40,13 +44,15 @@ public class Dialogo : MonoBehaviour
     [SerializeField] private TMP_Text nombre;
     [SerializeField] private TMP_Text texto;
 
-    [Tooltip("La Image donde aparece el monito de cada línea. Va ADENTRO " +
-        "del marco: el script le cambia el sprite, así que no puede ser el " +
-        "marco mismo.")]
-    [SerializeField] private Image imagen;
+    [Tooltip("Lo que se dibuja del retrato: el RawImage con la " +
+        "RenderTexture de la cámara de retratos. Se funde entero al " +
+        "cambiar de personaje.\n\n" +
+        "Es un Graphic y no un Image para que acepte el RawImage, que " +
+        "es el que muestra RenderTextures.")]
+    [SerializeField] private Graphic retrato;
 
     [Tooltip("Opcional: el marco del retrato. Se esconde junto con el " +
-        "monito en las líneas sin imagen (el narrador).")]
+        "monito en las líneas sin personaje (el narrador).")]
     [SerializeField] private GameObject marco;
 
     [Tooltip("Cuánto dura el fundido del retrato al cambiar de " +
@@ -57,7 +63,7 @@ public class Dialogo : MonoBehaviour
 
     [Tooltip("Opcional: un CanvasGroup en el retrato. Si lo ponés, el " +
         "fundido se le hace a ÉL, así el monito y su marco entran y " +
-        "salen juntos. Vacío = se funde solo la imagen, y el marco " +
+        "salen juntos. Vacío = se funde solo el retrato, y el marco " +
         "aparece seco.")]
     [SerializeField] private CanvasGroup grupoRetrato;
 
@@ -102,7 +108,7 @@ public class Dialogo : MonoBehaviour
     private int _frameInicio;
     private Coroutine _escritura;
     private Coroutine _fundido;
-    private Sprite _retrato;
+    private GameObject _enEscena;
 
     /// <summary>
     /// Arranca el diálogo desde la primera línea. "alTerminar" se llama
@@ -199,7 +205,7 @@ public class Dialogo : MonoBehaviour
         {
             nombre.text = linea.quien;
         }
-        MostrarRetrato(linea.imagen);
+        MostrarRetrato(linea.personaje);
         texto.text = linea.texto;
         texto.maxVisibleCharacters = 0;
         texto.ForceMeshUpdate();
@@ -265,9 +271,9 @@ public class Dialogo : MonoBehaviour
     /// Va en su propia corrutina, aparte de la que escribe el texto:
     /// las dos corren a la vez, así el texto no espera al retrato.
     /// </summary>
-    private void MostrarRetrato(Sprite nuevo)
+    private void MostrarRetrato(GameObject nuevo)
     {
-        if (nuevo == _retrato)
+        if (nuevo == _enEscena)
         {
             return;
         }
@@ -287,13 +293,13 @@ public class Dialogo : MonoBehaviour
         _fundido = StartCoroutine(Fundir(nuevo));
     }
 
-    private IEnumerator Fundir(Sprite nuevo)
+    private IEnumerator Fundir(GameObject nuevo)
     {
         float mitad = segundosFundido * 0.5f;
 
         // el que estaba se va primero; si no había nadie, no hay nada
         // que sacar y entra directo
-        if (_retrato != null)
+        if (_enEscena != null)
         {
             yield return Rampa(Leer(), 0f, mitad);
         }
@@ -325,17 +331,38 @@ public class Dialogo : MonoBehaviour
         Alfa(hasta);
     }
 
-    private void PonerRetrato(Sprite s)
+    /// <summary>
+    /// Deja en escena solo al personaje de esta línea. Se apagan TODOS
+    /// los que aparecen en el diálogo y no solo el anterior: si dos
+    /// líneas seguidas se cortan a mitad del fundido, podría haber
+    /// quedado más de uno prendido.
+    /// </summary>
+    private void PonerRetrato(GameObject quien)
     {
-        _retrato = s;
-        if (imagen != null)
+        _enEscena = quien;
+
+        if (lineas != null)
         {
-            imagen.sprite = s;
-            imagen.enabled = s != null;
+            foreach (Linea l in lineas)
+            {
+                if (l.personaje != null && l.personaje != quien)
+                {
+                    l.personaje.SetActive(false);
+                }
+            }
+        }
+        if (quien != null)
+        {
+            quien.SetActive(true);
+        }
+
+        if (retrato != null)
+        {
+            retrato.enabled = quien != null;
         }
         if (marco != null)
         {
-            marco.SetActive(s != null);
+            marco.SetActive(quien != null);
         }
     }
 
@@ -346,11 +373,11 @@ public class Dialogo : MonoBehaviour
             grupoRetrato.alpha = a;
             return;
         }
-        if (imagen != null)
+        if (retrato != null)
         {
-            Color c = imagen.color;
+            Color c = retrato.color;
             c.a = a;
-            imagen.color = c;
+            retrato.color = c;
         }
     }
 
@@ -360,7 +387,7 @@ public class Dialogo : MonoBehaviour
         {
             return grupoRetrato.alpha;
         }
-        return imagen != null ? imagen.color.a : 1f;
+        return retrato != null ? retrato.color.a : 1f;
     }
 
     private void SonarLetra(AudioClip clip)

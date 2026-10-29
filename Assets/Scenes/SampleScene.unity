@@ -19097,7 +19097,7 @@ MonoBehaviour:
   automatico: 1
   salidaGrados: 90
   zLocal: 0
-  luz: {fileID: 1296066625}
+  luz: {fileID: 0}
   modoLuz: 0
   luzLibre: {r: 0.47, g: 0.71, b: 0.54, a: 1}
   luzOcupada: {r: 0.85, g: 0.31, b: 0.25, a: 1}

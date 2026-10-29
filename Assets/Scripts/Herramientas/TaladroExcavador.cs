@@ -809,7 +809,11 @@ public class TaladroExcavador : Herramienta
                 continue;
             }
 
-            if (dist < radioTragado)
+            // Se traga cuando TOCA la boca, no cuando su centro llega al
+            // centro de la boca. Con escombros grandes el collider choca
+            // contra el taladro mucho antes de que el centro se acerque
+            // tanto, y se quedaban dando vueltas sin entrar nunca.
+            if (dist < radioTragado + RadioDe(rb))
             {
                 // con la bodega llena se queda flotando en la boca
                 if (bodega != null && !bodega.Llena)
@@ -826,6 +830,17 @@ public class TaladroExcavador : Herramienta
             Vector2 a = d / dist * fuerzaAspirado - (rb.linearVelocity - vBoca) * frenoAspirado;
             rb.AddForce(a * rb.mass);
         }
+    }
+
+    /// <summary>
+    /// Qué tan grande es un escombro, en unidades de mundo. Sale del
+    /// collider y no de la escala: la escala no dice nada sin saber de
+    /// qué tamaño es el dibujo abajo.
+    /// </summary>
+    private static float RadioDe(Rigidbody2D rb)
+    {
+        Collider2D c = rb.GetComponent<Collider2D>();
+        return c != null ? Mathf.Max(c.bounds.extents.x, c.bounds.extents.y) : 0f;
     }
 
     private void Cargar(float kg, TipoMaterial tipo)

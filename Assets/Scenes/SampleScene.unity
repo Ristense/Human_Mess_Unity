@@ -539,7 +539,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FondoInfinito
   objetivo: {fileID: 519420032}
-  factor: 0.02
+  factor: 1.35
+  unidadesPorVuelta: 1000
   correccion: {x: 1, y: 1}
   seguirObjetivo: 1
 --- !u!1 &87198738
@@ -14004,7 +14005,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SincronizarZoom3D
   camaraJuego: {fileID: 519420031}
-  intensidad: 0
+  intensidad: 0.312
+  limiteAlejamiento: 0.35
 --- !u!114 &989958248
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18575,7 +18577,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FondoInfinito
   objetivo: {fileID: 519420032}
-  factor: 0.06
+  factor: 1.59
+  unidadesPorVuelta: 1000
   correccion: {x: 1, y: 1}
   seguirObjetivo: 1
 --- !u!1 &1427320475 stripped
@@ -19715,6 +19718,54 @@ MonoBehaviour:
   oxigenoTexto: {fileID: 995321348}
   hidrogenoTexto: {fileID: 1018605266}
   framesPorTickObjetos: 15
+--- !u!1 &1724288014
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1724288016}
+  - component: {fileID: 1724288015}
+  m_Layer: 0
+  m_Name: Controlador_Maximo
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1724288015
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1724288014}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7003c7a042fe46449a8f5d2d73989120, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ControladorMaximo
+  objetosAocultar: []
+  camaraBase: {fileID: 0}
+  camara3DWorld: {fileID: 0}
+  planeta: {fileID: 0}
+--- !u!4 &1724288016
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1724288014}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.69682, y: -0.16893, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1758334036
 GameObject:
   m_ObjectHideFlags: 0
@@ -22539,6 +22590,14 @@ PrefabInstance:
       propertyPath: objetivo
       value: 
       objectReference: {fileID: 588659009}
+    - target: {fileID: 4681134142922463982, guid: 4c2d367210e371546aaebf640ab06679, type: 3}
+      propertyPath: gradosPorUnidadX
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4681134142922463982, guid: 4c2d367210e371546aaebf640ab06679, type: 3}
+      propertyPath: gradosPorUnidadY
+      value: 0.3
+      objectReference: {fileID: 0}
     - target: {fileID: 6164178598685037641, guid: 4c2d367210e371546aaebf640ab06679, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1640
@@ -22981,6 +23040,7 @@ PrefabInstance:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
+  - {fileID: 1724288016}
   - {fileID: 1988140737}
   - {fileID: 519420032}
   - {fileID: 989958246}

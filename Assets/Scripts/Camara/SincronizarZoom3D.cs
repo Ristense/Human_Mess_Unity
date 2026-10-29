@@ -20,14 +20,21 @@ public class SincronizarZoom3D : MonoBehaviour
     [Range(0f, 1f)]
     [SerializeField] private float intensidad = 0.6f;
 
+    [Tooltip("Desde qué porcentaje del zoom el planeta deja de achicarse. " +
+        "0.5 = a la mitad del rango.")]
+    [Range(0f, 1f)]
+    [SerializeField] private float limiteAlejamiento = 0.5f;
+
     private Camera _propia;
     private float _fovBase3D;
     private float _fovBaseJuego;
     private bool _listo;
+    private ZoomCamara _zoomJuego;
 
     private void OnEnable()
     {
         _propia = GetComponent<Camera>();
+        _zoomJuego = camaraJuego != null ? camaraJuego.GetComponent<ZoomCamara>() : null;
         _listo = false;
     }
 
@@ -54,7 +61,14 @@ public class SincronizarZoom3D : MonoBehaviour
             return;
         }
 
-        float proporcion = ZoomDe(camaraJuego) / _fovBaseJuego;
+        float zoomJuego = ZoomDe(camaraJuego);
+        if (_zoomJuego != null)
+        {
+            zoomJuego = Mathf.Min(zoomJuego,
+                _zoomJuego.ZoomEnFraccion(limiteAlejamiento));
+        }
+
+        float proporcion = zoomJuego / _fovBaseJuego;
         // con intensidad < 1, el cambio se amortigua en vez de copiarse tal cual
         float aplicada = Mathf.Lerp(1f, proporcion, intensidad);
         _propia.fieldOfView = Mathf.Clamp(_fovBase3D * aplicada, 1f, 179f);

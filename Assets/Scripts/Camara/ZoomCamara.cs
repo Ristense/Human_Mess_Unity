@@ -67,6 +67,15 @@ public class ZoomCamara : MonoBehaviour
         }
     }
 
+    /// <summary>El valor de zoom que corresponde a una fracción del rango.</summary>
+    public float ZoomEnFraccion(float fraccion)
+    {
+        fraccion = Mathf.Clamp01(fraccion);
+        return _cam != null && _cam.orthographic
+            ? Mathf.Lerp(orthoMin, orthoMax, fraccion)
+            : Mathf.Lerp(fovMin, fovMax, fraccion);
+    }
+
     private void Awake()
     {
         _cam = GetComponent<Camera>();

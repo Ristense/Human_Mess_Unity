@@ -114,7 +114,9 @@ public class ControladorMaximo : MonoBehaviour
 
         foreach (GameObject objeto in objetosAocultar)
         {
-            if (objeto != null)
+            // El controlador siempre tiene que quedar vivo para poder
+            // escuchar la T y volver desde la selección.
+            if (objeto != null && !transform.IsChildOf(objeto.transform))
             {
                 objeto.SetActive(mostrar);
             }

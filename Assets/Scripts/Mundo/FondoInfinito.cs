@@ -22,12 +22,15 @@ public class FondoInfinito : MonoBehaviour
     [Tooltip("A quién sigue. Normalmente la cámara del juego.")]
     [SerializeField] private Transform objetivo;
 
-    [Tooltip("Cuánto se corre la textura por cada unidad que te " +
-        "movés. 0 = el fondo queda clavado en pantalla, como pintado " +
-        "en el vidrio. 1 = se mueve como si estuviera a tu distancia. " +
-        "Para estrellas lejanas, 0.02-0.08. Dale un valor distinto a " +
-        "cada capa: eso es lo que crea la sensación de profundidad.")]
+    [Tooltip("Qué fracción de una vuelta recorre la textura por cada " +
+        "Unidades por Vuelta. 0 = queda clavado. Para estrellas " +
+        "lejanas, 0.02-0.08.")]
     [SerializeField] private float factor = 0.05f;
+
+    [Tooltip("Cuántas unidades del mundo hacen una vuelta completa " +
+        "cuando Factor vale 1. Alto = estrellas más lentas.")]
+    [Min(0.01f)]
+    [SerializeField] private float unidadesPorVuelta = 1000f;
 
     [Tooltip("Si tu textura se ve estirada en un eje, acá lo " +
         "compensás para que el desplazamiento no vaya más rápido en " +
@@ -41,6 +44,8 @@ public class FondoInfinito : MonoBehaviour
     private Renderer _render;
     private Material _mat;
     private Vector3 _desfase;
+    private Vector3 _inicioObjetivo;
+    private Vector2 _offsetInicial;
 
     private void Start()
     {
@@ -58,6 +63,8 @@ public class FondoInfinito : MonoBehaviour
             // guardamos cómo lo acomodaste respecto a la cámara para
             // respetarlo, sobre todo la Z, que define el orden
             _desfase = transform.position - objetivo.position;
+            _inicioObjetivo = objetivo.position;
+            _offsetInicial = _mat.mainTextureOffset;
         }
     }
 
@@ -73,12 +80,12 @@ public class FondoInfinito : MonoBehaviour
             transform.position = objetivo.position + _desfase;
         }
 
-        // El offset se calcula desde la posición ABSOLUTA y no
-        // acumulando frame a frame: así no se va juntando error de
-        // redondeo, y si te teletransportás el fondo queda coherente.
-        Vector2 p = objetivo.position;
-        _mat.mainTextureOffset = new Vector2(
-            p.x * factor * correccion.x,
-            p.y * factor * correccion.y);
+        // Se mide desde el inicio, no con la posición absoluta del
+        // mundo: así el tamaño de los sectores no acelera la textura.
+        Vector3 recorrido = objetivo.position - _inicioObjetivo;
+        float divisor = Mathf.Max(unidadesPorVuelta, 0.01f);
+        _mat.mainTextureOffset = _offsetInicial + new Vector2(
+            recorrido.x * factor * correccion.x / divisor,
+            recorrido.y * factor * correccion.y / divisor);
     }
 }

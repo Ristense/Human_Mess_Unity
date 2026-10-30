@@ -1563,7 +1563,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Dialogo
   nombre: {fileID: 574308387}
   texto: {fileID: 2020980145}
-  retrato: {fileID: 681982081}
+  retrato: {fileID: 1616857931}
   marco: {fileID: 681982078}
   segundosFundido: 0.25
   grupoRetrato: {fileID: 0}
@@ -1577,29 +1577,35 @@ MonoBehaviour:
   fuente: {fileID: 0}
   lineas:
   - quien: Zanao
-    personaje: {fileID: 0}
+    personaje: {fileID: 1714277535}
     texto: Hey!
     voz: {fileID: 0}
+    animacion: 
   - quien: Zanao
-    personaje: {fileID: 0}
+    personaje: {fileID: 1714277535}
     texto: Chico, despierta! hay trabajo que hacer..
     voz: {fileID: 0}
+    animacion: 
   - quien: Oque
     personaje: {fileID: 0}
     texto: Ya dejame en paz todavia no llegamos al sector
     voz: {fileID: 0}
+    animacion: 
   - quien: Zanao
-    personaje: {fileID: 0}
+    personaje: {fileID: 1714277535}
     texto: '........... '
     voz: {fileID: 0}
+    animacion: 
   - quien: Zanao
     personaje: {fileID: 0}
     texto: Si, pero tienes que estar preparado antes de salir, revisa TODO!
     voz: {fileID: 0}
+    animacion: 
   - quien: Oque
     personaje: {fileID: 0}
     texto: 'Okey.. '
     voz: {fileID: 0}
+    animacion: 
 --- !u!1 &788224155
 GameObject:
   m_ObjectHideFlags: 0

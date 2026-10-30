@@ -38,6 +38,15 @@ public class Dialogo : MonoBehaviour
             "para darle una voz distinta a cada personaje. Vacío = el " +
             "sonido general.")]
         public AudioClip voz;
+
+        [Tooltip("Opcional: el NOMBRE de un estado del Animator del " +
+            "personaje (el que se ve en la ventana Animator). Se " +
+            "reproduce una vez cuando el retrato ya terminó de entrar, " +
+            "mientras se escribe el texto. Vacío = no pasa nada.\n\n" +
+            "Si el diálogo avanza antes de que termine, la animación " +
+            "se corta: o entra la de la línea nueva, o se apaga el " +
+            "personaje.")]
+        public string animacion;
     }
 
     [Header("Textos")]
@@ -109,6 +118,7 @@ public class Dialogo : MonoBehaviour
     private Coroutine _escritura;
     private Coroutine _fundido;
     private GameObject _enEscena;
+    private string _animPendiente;
 
     /// <summary>
     /// Arranca el diálogo desde la primera línea. "alTerminar" se llama
@@ -205,7 +215,7 @@ public class Dialogo : MonoBehaviour
         {
             nombre.text = linea.quien;
         }
-        MostrarRetrato(linea.personaje);
+        MostrarRetrato(linea.personaje, linea.animacion);
         texto.text = linea.texto;
         texto.maxVisibleCharacters = 0;
         texto.ForceMeshUpdate();
@@ -271,10 +281,18 @@ public class Dialogo : MonoBehaviour
     /// Va en su propia corrutina, aparte de la que escribe el texto:
     /// las dos corren a la vez, así el texto no espera al retrato.
     /// </summary>
-    private void MostrarRetrato(GameObject nuevo)
+    private void MostrarRetrato(GameObject nuevo, string animacion)
     {
+        _animPendiente = animacion;
+
         if (nuevo == _enEscena)
         {
+            // Si todavía está entrando, la corrutina del fundido toca
+            // la animación pendiente cuando termine
+            if (_fundido == null)
+            {
+                Animar(nuevo, animacion);
+            }
             return;
         }
 
@@ -288,6 +306,7 @@ public class Dialogo : MonoBehaviour
         {
             PonerRetrato(nuevo);
             Alfa(1f);
+            Animar(nuevo, animacion);
             return;
         }
         _fundido = StartCoroutine(Fundir(nuevo));
@@ -311,6 +330,28 @@ public class Dialogo : MonoBehaviour
             yield return Rampa(0f, 1f, mitad);
         }
         _fundido = null;
+        Animar(nuevo, _animPendiente);
+    }
+
+    /// <summary>
+    /// Toca un estado del Animator del personaje, desde el principio.
+    /// Corre con tiempo sin escala, igual que el resto del diálogo.
+    /// </summary>
+    private static void Animar(GameObject quien, string estado)
+    {
+        if (quien == null || string.IsNullOrEmpty(estado))
+        {
+            return;
+        }
+        Animator animador = quien.GetComponentInChildren<Animator>();
+        if (animador == null)
+        {
+            Debug.LogWarning($"Dialogo: {quien.name} no tiene Animator, " +
+                $"no se puede tocar '{estado}'.", quien);
+            return;
+        }
+        animador.updateMode = AnimatorUpdateMode.UnscaledTime;
+        animador.Play(estado, 0, 0f);
     }
 
     private IEnumerator Rampa(float desde, float hasta, float duracion)

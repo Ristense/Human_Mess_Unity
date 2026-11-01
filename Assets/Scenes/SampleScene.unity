@@ -19646,6 +19646,79 @@ Transform:
   - {fileID: 1938862872}
   m_Father: {fileID: 1586535116}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1692249170
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1692249171}
+  - component: {fileID: 1692249172}
+  - component: {fileID: 1692249173}
+  m_Layer: 0
+  m_Name: Seleccion_Sector
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1692249171
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1692249170}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.01277, y: 1.18705, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1692249172
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1692249170}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72b8e375d8fc8554496f55809e6e49c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SelectorSector
+  planeta: {fileID: 1302080533}
+  minSectores: 2
+  maxSectores: 5
+  semilla: 0
+  suavizado: 0.25
+  offsetGrados: 0
+--- !u!114 &1692249173
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1692249170}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9102b6bcfbe2dde459c9f2e3b20d4618, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GrillaPlaneta
+  selector: {fileID: 1692249172}
+  planeta: {fileID: 1302080533}
+  material: {fileID: 0}
+  color: {r: 0.5, g: 0.9, b: 1, a: 0.5}
+  colorElegido: {r: 0.4, g: 1, b: 0.5, a: 1}
+  grosor: 0.01
+  separacion: 1.02
+  latitudMaxima: 60
+  paralelos: 3
+  puntosPorArco: 24
 --- !u!1 &1713030306
 GameObject:
   m_ObjectHideFlags: 0
@@ -19747,10 +19820,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7003c7a042fe46449a8f5d2d73989120, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ControladorMaximo
-  objetosAocultar: []
-  camaraBase: {fileID: 0}
-  camara3DWorld: {fileID: 0}
-  planeta: {fileID: 0}
+  objetosAocultar:
+  - {fileID: 588659007}
+  camaraBase: {fileID: 519420031}
+  camara3DWorld: {fileID: 989958245}
+  planeta: {fileID: 1302080533}
+  quad: {fileID: 1826963173}
+  alejar: 2.5
+  selector: {fileID: 1692249172}
 --- !u!4 &1724288016
 Transform:
   m_ObjectHideFlags: 0
@@ -23041,6 +23118,7 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 1724288016}
+  - {fileID: 1692249171}
   - {fileID: 1988140737}
   - {fileID: 519420032}
   - {fileID: 989958246}

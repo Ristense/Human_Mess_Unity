@@ -143,6 +143,22 @@ public class Bodega : MonoBehaviour
     }
 
     /// <summary>
+    /// Le devuelve a la bodega lo que tenía en la partida guardada. No
+    /// pasa por SumarCarga a propósito: eso recorta por lo que entra, y
+    /// acá lo guardado ya entraba.
+    /// </summary>
+    public void Restaurar(float carga, float creditos, int placas,
+        float kgPlacas, float kgHielo, float kgRestos)
+    {
+        this.carga = carga;
+        this.creditos = creditos;
+        this.placas = placas;
+        this.kgPlacas = kgPlacas;
+        this.kgHielo = kgHielo;
+        this.kgRestos = kgRestos;
+    }
+
+    /// <summary>
     /// Guarda una placa de `kg`. Una placa no se parte: si no entra
     /// entera, no entra, y devuelve false.
     /// </summary>

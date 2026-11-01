@@ -85,9 +85,18 @@ public class Mapa : MonoBehaviour
     /// </summary>
     public void Generar()
     {
-        _semilla = formaAleatoria && Application.isPlaying
+        GenerarCon(formaAleatoria && Application.isPlaying
             ? Random.Range(int.MinValue, int.MaxValue)
-            : worldSeed;
+            : worldSeed);
+    }
+
+    /// <summary>
+    /// Arma la forma a partir de una semilla concreta. Es lo que usa el
+    /// guardado: con la misma semilla sale el mismo mapa.
+    /// </summary>
+    public void GenerarCon(int semilla)
+    {
+        _semilla = semilla;
         var rng = new System.Random(_semilla);
 
         List<Vector2Int> molde = Molde();

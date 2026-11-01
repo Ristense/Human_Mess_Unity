@@ -84,6 +84,17 @@ public class SoporteVital : MonoBehaviour
     public float CapacidadH => capacidad * FraccionH;
     public float CapacidadO => capacidad * (1f - FraccionH);
 
+    /// <summary>Kg de cada tanque. Los lee y los escribe el guardado.</summary>
+    public float KgHidrogeno => _kgH;
+    public float KgOxigeno => _kgO;
+
+    /// <summary>Le devuelve los tanques a como estaban en la partida guardada.</summary>
+    public void Restaurar(float kgH, float kgO)
+    {
+        _kgH = Mathf.Clamp(kgH, 0f, CapacidadH);
+        _kgO = Mathf.Clamp(kgO, 0f, CapacidadO);
+    }
+
     private float FraccionH
     {
         get

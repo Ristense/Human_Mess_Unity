@@ -65,7 +65,6 @@ public class SelectorSector : MonoBehaviour
     public float GradosPorSector => Sectores > 0 ? 360f / Sectores : 360f;
 
     private GirarPlaneta _giroPropio;
-    private Quaternion _rotacionAntes;
 
     // cada sector está a su propia altura: así pasar de uno a otro no es
     // solo girar de lado, también sube o baja
@@ -151,8 +150,6 @@ public class SelectorSector : MonoBehaviour
                 "arrastralo al campo Planeta.", this);
             return;
         }
-        // de dónde parte: así al salir queda como estaba
-        _rotacionAntes = planeta.localRotation;
 
         if (_giroPropio != null)
         {
@@ -163,14 +160,10 @@ public class SelectorSector : MonoBehaviour
 
     private void OnDisable()
     {
-        if (planeta != null)
-        {
-            planeta.localRotation = _rotacionAntes;
-        }
-        if (_giroPropio != null)
-        {
-            _giroPropio.enabled = true;
-        }
+        // El planeta se queda mirando el sector que elegiste: al salir
+        // seguís viendo adónde vas. Tampoco se le devuelve el giro lento
+        // de siempre — con el planeta girando, el sector elegido se iría
+        // de vista en un rato y la elección no significaría nada.
     }
 
     private void Update()

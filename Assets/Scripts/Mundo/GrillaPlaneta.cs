@@ -94,26 +94,17 @@ public class GrillaPlaneta : MonoBehaviour
             return;
         }
 
-        // Las líneas cuelgan del MISMO objeto al que el selector le
-        // aplica el giro. Colgándolas de la malla, que puede venir con
-        // su propia rotación de fábrica, los recuadros quedaban
-        // corridos respecto de adónde para el giro.
-        //
-        // El tamaño se mide en el mundo y se traduce al espacio del
-        // planeta: así da igual cuántos hijos con escala propia haya en
-        // el medio.
-        _radio = RadioEnElPlaneta() * separacion;
+        // La grilla NO cuelga del planeta: vive suelta en el mundo y lo
+        // sigue desde afuera (ver Seguir). Colgada de él heredaba toda
+        // la cadena de escalas de sus padres, y cualquier escala
+        // despareja la estiraba distinto según hacia dónde estuviera
+        // girado — por eso crecía sola al cambiar de sector.
+        _radio = RadioMundo() * separacion;
 
         var go = new GameObject("Grilla");
-        go.transform.SetParent(planeta, worldPositionStays: false);
         _raiz = go.transform;
-
-        Renderer r = planeta.GetComponentInChildren<Renderer>();
-        if (r != null)
-        {
-            // por si la bola no está centrada en el origen del objeto
-            go.transform.localPosition = planeta.InverseTransformPoint(r.bounds.center);
-        }
+        _raiz.localScale = Vector3.one;
+        Seguir();
 
         int n = Mathf.Max(1, selector.Sectores);
         float paso = 360f / n;
@@ -213,6 +204,8 @@ public class GrillaPlaneta : MonoBehaviour
     {
         var go = new GameObject(nombre);
         go.transform.SetParent(_raiz, worldPositionStays: false);
+        // la capa importa: si no es una que la cámara 3D dibuja, la
+        // grilla existe pero no se ve
         go.layer = planeta.gameObject.layer;
 
         var lr = go.AddComponent<LineRenderer>();
@@ -235,25 +228,49 @@ public class GrillaPlaneta : MonoBehaviour
     /// los bounds del mundo, así la escala del objeto no lo altera — las
     /// líneas son hijas suyas y ya heredan esa escala.
     /// </summary>
-    private float RadioEnElPlaneta()
+    /// <summary>
+    /// El radio del planeta en unidades del MUNDO. Sale de la malla y
+    /// no de los bounds del renderer: los bounds son una caja alineada
+    /// al mundo, así que cambian de tamaño cuando el planeta gira, y la
+    /// grilla cambiaría con ellos.
+    /// </summary>
+    private float RadioMundo()
     {
         if (radioManual > 0f)
         {
             return radioManual;
         }
-        Renderer r = planeta.GetComponentInChildren<Renderer>();
-        if (r == null)
+        MeshFilter mf = planeta.GetComponentInChildren<MeshFilter>();
+        if (mf == null || mf.sharedMesh == null)
         {
             return 0.5f;
         }
-        // el radio que se ve en el mundo, dividido por la escala del
-        // planeta: queda en las unidades en que trabajan sus hijos
-        Vector3 e = r.bounds.extents;
-        float mundo = Mathf.Max(e.x, Mathf.Max(e.y, e.z));
-        Vector3 s = planeta.lossyScale;
-        float escala = Mathf.Max(0.0001f, Mathf.Max(Mathf.Abs(s.x),
-            Mathf.Max(Mathf.Abs(s.y), Mathf.Abs(s.z))));
-        return mundo / escala;
+        Vector3 e = mf.sharedMesh.bounds.extents;
+        float local = Mathf.Max(e.x, Mathf.Max(e.y, e.z));
+        Vector3 s = mf.transform.lossyScale;
+        float escala = Mathf.Max(Mathf.Abs(s.x),
+            Mathf.Max(Mathf.Abs(s.y), Mathf.Abs(s.z)));
+        return local * escala;
+    }
+
+    /// <summary>
+    /// Planta la grilla sobre el planeta: en su centro y girada como él.
+    /// Va en LateUpdate, después de que el selector lo haya girado.
+    /// </summary>
+    private void Seguir()
+    {
+        if (_raiz == null || planeta == null)
+        {
+            return;
+        }
+        Renderer r = planeta.GetComponentInChildren<MeshRenderer>();
+        Vector3 centro = r != null ? r.bounds.center : planeta.position;
+        _raiz.SetPositionAndRotation(centro, planeta.rotation);
+    }
+
+    private void LateUpdate()
+    {
+        Seguir();
     }
 
 }

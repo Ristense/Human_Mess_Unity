@@ -261,6 +261,71 @@ public class Tallable : MonoBehaviour
     /// <summary>¿Ya se le cortó algo? Desde ahí el sprite no es su forma.</summary>
     public bool EstaTallado => _comoMalla;
 
+    // ------------------------------------------------------------------
+    //  Guardado
+    // ------------------------------------------------------------------
+
+    /// <summary>Cuánto pesa por unidad de área. Para guardar la partida.</summary>
+    public float DensidadActual => _densidad;
+
+    /// <summary>De qué área partió, antes de que le sacaran nada.</summary>
+    public float AreaOriginal => _areaOriginal;
+
+    /// <summary>
+    /// La forma de ahora, en coordenadas locales. Un arreglo por
+    /// contorno: normalmente uno solo, pero puede haber más.
+    /// </summary>
+    public List<Vector2[]> FormaLocal()
+    {
+        var salida = new List<Vector2[]>();
+        if (_forma == null)
+        {
+            return salida;
+        }
+        foreach (PathD p in _forma)
+        {
+            var puntos = new Vector2[p.Count];
+            for (int i = 0; i < p.Count; i++)
+            {
+                puntos[i] = new Vector2((float)p[i].x, (float)p[i].y);
+            }
+            salida.Add(puntos);
+        }
+        return salida;
+    }
+
+    /// <summary>
+    /// Le devuelve una forma guardada, con su densidad y su área de
+    /// origen. Es lo que deja que un asteroide vuelva picado tal cual lo
+    /// dejaste, y no entero.
+    /// </summary>
+    public void Restaurar(float densidad, float areaOriginal,
+        IReadOnlyList<Vector2[]> forma)
+    {
+        if (_col == null)
+        {
+            Awake();
+        }
+        _densidad = densidad;
+        _areaOriginal = areaOriginal;
+        if (forma == null || forma.Count == 0)
+        {
+            return;
+        }
+
+        var paths = new PathsD(forma.Count);
+        foreach (Vector2[] contorno in forma)
+        {
+            var p = new PathD(contorno.Length);
+            foreach (Vector2 v in contorno)
+            {
+                p.Add(new PointD(v.x, v.y));
+            }
+            paths.Add(p);
+        }
+        Aplicar(paths);
+    }
+
     /// <summary>
     /// La forma de verdad, en MUNDO, agrandada "margen" para afuera con
     /// las esquinas redondeadas. El contorno la usa para dibujarse cuando
